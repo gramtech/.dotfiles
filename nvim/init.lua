@@ -1,5 +1,3 @@
--- ~/.config/nvim/init.lua
-
 --------------------------------------------------
 -- Leader keys
 --------------------------------------------------
@@ -70,6 +68,14 @@ require("lazy").setup({
   },
 
   {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {
+      preset = "modern",
+    },
+  },
+
+  {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
@@ -77,6 +83,18 @@ require("lazy").setup({
       if ok then
         configs.setup({
           highlight = { enable = true },
+          textobjects = {
+            select = {
+              enable = true,
+              lookahead = true, -- optional: jump forward to textobject
+              keymaps = {
+                ["af"] = "@function.outer",
+                ["if"] = "@function.inner",
+                ["ac"] = "@class.outer",
+                ["ic"] = "@class.inner",
+              },
+            },
+          },
         })
       end
     end,

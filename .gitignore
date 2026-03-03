@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Neovim
+nvim/lazy-lock.json
+
+# Editor backup/swap files
+*.swp
+*.swo
+*~
+
+# Secrets / sensitive files
+*.pem
+*.key
+id_rsa
+id_ed25519
+known_hosts
