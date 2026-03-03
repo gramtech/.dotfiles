@@ -8,3 +8,6 @@ OP_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 if [[ -S "$OP_SOCK" ]]; then
   export SSH_AUTH_SOCK="$OP_SOCK"
 fi
+
+# fzf (Mac) — if installed via brew's fzf install script
+[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
