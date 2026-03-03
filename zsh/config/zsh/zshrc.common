@@ -1,0 +1,26 @@
+[[ -o interactive ]] || return
+
+# history
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=20000
+SAVEHIST=20000
+setopt HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS INC_APPEND_HISTORY SHARE_HISTORY
+
+# tmux: attach to main session or create it
+t() {
+  if command -v tmux >/dev/null 2>&1; then
+    tmux attach -t main 2>/dev/null || tmux new -s main
+  else
+    echo "tmux not installed"
+    return 1
+  fi
+}
+
+# completion
+autoload -Uz compinit
+compinit -C
+
+bindkey -e
+
+alias v='nvim'
+

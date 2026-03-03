@@ -1,0 +1,10 @@
+# iTerm2 shell integration (Mac)
+if [[ -r "$HOME/.iterm2_shell_integration.zsh" ]]; then
+  source "$HOME/.iterm2_shell_integration.zsh"
+fi
+
+# 1Password SSH agent (Mac) — only if socket exists
+OP_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+if [[ -S "$OP_SOCK" ]]; then
+  export SSH_AUTH_SOCK="$OP_SOCK"
+fi
