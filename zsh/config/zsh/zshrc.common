@@ -16,12 +16,6 @@ t() {
   fi
 }
 
-# completion
-autoload -Uz compinit
-compinit -C
-
-bindkey -e
-
 # ---------- fzf ergonomics ----------
 # If you already source ~/.fzf.zsh (you do on mac), these vars tune its widgets.
 
@@ -48,7 +42,73 @@ export FZF_ALT_C_OPTS='
   --preview "command -v eza >/dev/null && eza -la --color=always {} || ls -la {}"
 '
 
-alias v='nvim'
+# aliases
+[[ -r "$HOME/.config/zsh/aliases.zsh" ]] && source "$HOME/.config/zsh/aliases.zsh"
+
+# ---------- Claude shell helpers (print-only; you execute manually) ----------
+
+# Ask Claude for next-command suggestions based on minimal context.
+ccmd() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "claude not found"
+    return 127
+  fi
+
+  local prompt="$*"
+  if [[ -z "$prompt" ]]; then
+    echo 'Usage: ccmd "what you want to do / what error you saw"'
+    return 2
+  fi
+
+  local lastcmd
+  lastcmd="$(fc -ln -1 2>/dev/null | sed 's/^[[:space:]]*//')"
+
+  claude --print "PWD: $(pwd)
+LAST_EXIT: $?
+LAST_CMD: ${lastcmd:-<none>}
+
+Request: $prompt
+
+Return:
+- likely cause (1-2 lines)
+- 3-6 next diagnostic commands (copy/paste)
+- 1 safe fix command if appropriate
+Do NOT run anything; only print commands + brief notes."
+}
+
+# Pipe output into Claude and get diagnosis + next commands.
+ccmd_in() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "claude not found"
+    return 127
+  fi
+
+  local prompt="$*"
+  [[ -z "$prompt" ]] && prompt="Explain this output and propose next diagnostic commands."
+
+  local input
+  input="$(cat)"
+
+  claude --print "PWD: $(pwd)
+
+OUTPUT:
+$input
+
+TASK:
+$prompt
+
+Return:
+- likely cause
+- next commands (copy/paste)
+- what to check if this repeats
+Do NOT run anything."
+}
+
+# completion
+autoload -Uz compinit
+compinit -C
+
+bindkey -e
 
 # Edit current command line in $EDITOR (Ctrl-x Ctrl-e)
 autoload -Uz edit-command-line
