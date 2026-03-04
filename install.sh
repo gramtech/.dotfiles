@@ -135,8 +135,13 @@ create_symlinks() {
   ln -sf "$DOTFILES/zsh/.zshrc"    "$HOME/.zshrc"
   ok "zsh"
 
-  # zsh config dir (~/.config/zsh → dotfiles/zsh/config/zsh)
+  # ~/.config is a real dir (XDG standard, shared by many tools)
   mkdir -p "$HOME/.config"
+
+  # ~/.config/zsh is a symlink — if a real dir exists here, remove it first
+  if [[ -d "$HOME/.config/zsh" && ! -L "$HOME/.config/zsh" ]]; then
+    rm -rf "$HOME/.config/zsh"
+  fi
   ln -sf "$DOTFILES/zsh/config/zsh" "$HOME/.config/zsh"
   ok "zsh config dir"
 
