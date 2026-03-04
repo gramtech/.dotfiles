@@ -1,0 +1,89 @@
+#  ---------------------------------------------------------------------------
+#
+#  Brewfile
+#  macOS package definitions — install with: brew bundle --file=~/.dotfiles/homebrew/Brewfile
+#
+#  Sections:
+#    1.  Core utilities
+#    2.  Languages & runtimes
+#    3.  Shell & terminal
+#    4.  Networking & security
+#    5.  Media
+#    6.  Applications (casks)
+#
+#  ---------------------------------------------------------------------------
+
+
+#  ---------------------------------------------------------------------------
+#  1.  Core utilities
+#  ---------------------------------------------------------------------------
+
+brew "git"
+brew "curl"
+brew "wget"
+brew "gnupg"
+brew "htop"
+brew "cmake"
+
+
+#  ---------------------------------------------------------------------------
+#  2.  Languages & runtimes
+#  ---------------------------------------------------------------------------
+
+brew "python"
+brew "node"
+brew "go"
+
+
+#  ---------------------------------------------------------------------------
+#  3.  Shell & terminal
+#  ---------------------------------------------------------------------------
+
+brew "neovim"
+brew "tmux"
+brew "fzf"
+brew "ripgrep"
+brew "bat"
+brew "eza"
+brew "zsh-autosuggestions"
+brew "zsh-history-substring-search"
+brew "zsh-syntax-highlighting"
+
+
+#  ---------------------------------------------------------------------------
+#  4.  Networking & security
+#  ---------------------------------------------------------------------------
+
+brew "nmap"
+
+
+#  ---------------------------------------------------------------------------
+#  5.  Media
+#  ---------------------------------------------------------------------------
+
+brew "ffmpeg"
+
+
+#  ---------------------------------------------------------------------------
+#  6.  Applications (casks)
+#  ---------------------------------------------------------------------------
+
+# Productivity & security
+cask "1password"
+cask "iterm2"
+
+# Browsers
+cask "brave-browser"
+cask "firefox"
+
+# Communication
+cask "signal"
+cask "discord"
+
+# Development
+cask "docker"
+cask "postman"
+cask "wireshark"
+
+# Media
+cask "vlc"
