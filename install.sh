@@ -27,13 +27,9 @@ install_macos() {
     ok "Homebrew already installed"
   fi
 
-  info "Installing packages"
-  brew install \
-    neovim tmux fzf \
-    ripgrep bat eza \
-    zsh-autosuggestions \
-    zsh-history-substring-search \
-    zsh-syntax-highlighting
+  info "Installing packages via Brewfile"
+  brew bundle --file="$DOTFILES/homebrew/Brewfile"
+  ok "Brewfile packages installed"
 
   # Install fzf shell key bindings (writes ~/.fzf.zsh, sourced by zshrc.darwin)
   local fzf_install="$(brew --prefix)/opt/fzf/install"
@@ -206,6 +202,6 @@ echo -e "\n${GREEN}${BOLD}Done.${RESET}"
 if [[ "$OS" == "Darwin" ]]; then
   echo ""
   echo "Remaining macOS steps:"
-  echo "  • Install 1Password and enable the SSH agent"
-  echo "  • Install iTerm2, then: curl -L https://iterm2.com/shell_integration/install_shell_integration.sh | bash"
+  echo "  • Open 1Password and enable the SSH agent under Settings → Developer"
+  echo "  • Install iTerm2 shell integration: curl -L https://iterm2.com/shell_integration/install_shell_integration.sh | bash"
 fi
