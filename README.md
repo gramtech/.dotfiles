@@ -1,12 +1,14 @@
 # .dotfiles
 
-macOS and Linux development environment: Zsh, Tmux, Neovim, SSH via 1Password.
+macOS and Linux development environment: Zsh, Tmux, Neovim, SSH via 1Password, Helm, Terraform.
 
 ## Structure
 
 ```
 .dotfiles/
 ├── bin/          # Utility scripts (install-terminfo)
+├── homebrew/     # Brewfile for macOS packages
+├── linux/        # Linux package installer script
 ├── nvim/         # Neovim configuration (lazy.nvim)
 ├── ssh/          # SSH client config (macOS / 1Password)
 ├── terminfo/     # Custom tmux-256color terminfo (italic support)
@@ -32,10 +34,27 @@ git clone git@github.com:youruser/dotfiles.git ~/.dotfiles
 ```
 
 The script will:
-- Install all required packages (Homebrew on macOS; apt/dnf/pacman on Linux)
+- Install all required packages (Homebrew + `brew bundle` on macOS; apt/dnf on Linux)
 - Create all symlinks
 - Install the custom terminfo
 - Set zsh as the default shell if needed
+
+**macOS packages** are defined in `homebrew/Brewfile` and installed via `brew bundle`.
+
+**Linux packages** are installed via `linux/install-packages.sh`. After core tools are installed, it presents a menu for optional components:
+
+```
+Optional components
+────────────────────────
+  1. Docker CE + Compose + BuildX  (Docker's official repo)
+  2. Node.js                        (via NVM)
+  3. Helm                           (official get-helm-3 script)
+  4. Terraform                      (HashiCorp's official repo)
+
+  a  Install all
+  i  Choose individually
+  s  Skip all
+```
 
 ### macOS — additional steps
 
