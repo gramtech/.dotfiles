@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+#  ---------------------------------------------------------------------------
+#
+#  Linux Package Installer
+#  Installs core tools via system package manager, then prompts for optional
+#  components that require third-party repositories (Docker, Node via NVM).
+#
+#  Usage: ~/.dotfiles/linux/install-packages.sh
+#
+#  ---------------------------------------------------------------------------
+
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+RESET='\033[0m'
+
+info() { echo -e "\n${BLUE}==>${RESET} ${BOLD}$*${RESET}"; }
+ok()   { echo -e "  ${GREEN}✓${RESET} $*"; }
+warn() { echo -e "  ${YELLOW}!${RESET} $*"; }
+
+prompt() {
+  local question="$1"
+  echo -e "\n  ${BOLD}${question}${RESET} [y/N] \c"
+  read -r answer
+  [[ "$answer" =~ ^[Yy]$ ]]
+}
+
+# ── Detect package manager ─────────────────────────────────────────────────
+
+if command -v apt-get >/dev/null 2>&1; then
+  PKG_MANAGER="apt"
+elif command -v dnf >/dev/null 2>&1; then
+  PKG_MANAGER="dnf"
+else
+  echo "Unsupported package manager. Only apt and dnf are supported."
+  exit 1
+fi
+
+ok "Detected package manager: $PKG_MANAGER"
+
+# ── Core packages ──────────────────────────────────────────────────────────
+
+install_core_apt() {
+  info "Installing core packages (apt)"
+  sudo apt-get update -qq
+  sudo apt-get install -y \
+    zsh tmux git curl wget \
+    fzf ripgrep htop gnupg \
+    zsh-autosuggestions zsh-syntax-highlighting \
+    ca-certificates apt-transport-https
+
+  # bat: named 'batcat' on older Ubuntu/Debian
+  if apt-cache show bat >/dev/null 2>&1; then
+    sudo apt-get install -y bat
+  else
+    sudo apt-get install -y batcat
+  fi
+
+  # eza: Ubuntu 23.10+ / Debian 13+
+  if apt-cache show eza >/dev/null 2>&1; then
+    sudo apt-get install -y eza
+  else
+    warn "eza not in apt — install via: cargo install eza  OR  snap install eza"
+  fi
+
+  ok "Core packages installed"
+}
+
+install_core_dnf() {
+  info "Installing core packages (dnf)"
+  sudo dnf install -y \
+    zsh tmux git curl wget \
+    fzf ripgrep htop gnupg2 \
+    bat eza \
+    zsh-autosuggestions zsh-syntax-highlighting \
+    ca-certificates
+
+  ok "Core packages installed"
+}
+
+# ── Neovim ─────────────────────────────────────────────────────────────────
+# System packages are often outdated — install from official source instead
+
+install_neovim_apt() {
+  info "Installing Neovim (stable PPA)"
+  sudo apt-get install -y software-properties-common
+  sudo add-apt-repository -y ppa:neovim-ppa/stable
+  sudo apt-get update -qq
+  sudo apt-get install -y neovim
+  ok "Neovim $(nvim --version | head -1) installed"
+}
+
+install_neovim_dnf() {
+  info "Installing Neovim (dnf)"
+  sudo dnf install -y neovim
+  ok "Neovim $(nvim --version | head -1) installed"
+}
+
+# ── zsh-history-substring-search ──────────────────────────────────────────
+# Not available in apt or dnf — clone to ~/.zsh/
+
+install_zsh_history_substring_search() {
+  local dest="$HOME/.zsh/zsh-history-substring-search"
+  if [[ ! -d "$dest" ]]; then
+    info "Cloning zsh-history-substring-search"
+    git clone --depth=1 \
+      https://github.com/zsh-users/zsh-history-substring-search.git \
+      "$dest"
+    ok "Cloned to $dest"
+  else
+    ok "zsh-history-substring-search already present"
+  fi
+}
+
+# ── Docker ─────────────────────────────────────────────────────────────────
+
+install_docker_apt() {
+  info "Adding Docker repository (apt)"
+
+  # GPG key
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+  # Repository
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+    https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+  sudo apt-get update -qq
+  sudo apt-get install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+  # Allow running docker without sudo
+  sudo usermod -aG docker "$USER"
+
+  ok "Docker $(docker --version) installed"
+  warn "Log out and back in for docker group membership to take effect"
+}
+
+install_docker_dnf() {
+  info "Adding Docker repository (dnf)"
+  sudo dnf install -y dnf-plugins-core
+  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+  sudo dnf install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+  sudo systemctl enable --now docker
+
+  # Allow running docker without sudo
+  sudo usermod -aG docker "$USER"
+
+  ok "Docker $(docker --version) installed"
+  warn "Log out and back in for docker group membership to take effect"
+}
+
+# ── NVM + Node ─────────────────────────────────────────────────────────────
+
+install_nvm() {
+  info "Installing NVM"
+
+  if [[ -d "$HOME/.nvm" ]]; then
+    ok "NVM already installed at ~/.nvm"
+    return
+  fi
+
+  # Fetch latest NVM release tag
+  local nvm_version
+  nvm_version=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest \
+    | grep '"tag_name"' | cut -d '"' -f 4)
+
+  curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_version}/install.sh" | bash
+
+  ok "NVM ${nvm_version} installed"
+  warn "Run 'source ~/.zshrc' then 'nvm install --lts' to install the latest LTS Node"
+}
+
+# ── Main ───────────────────────────────────────────────────────────────────
+
+echo -e "\n${BOLD}Linux package installer${RESET}"
+echo "────────────────────────"
+
+# Core
+case "$PKG_MANAGER" in
+  apt)
+    install_core_apt
+    install_neovim_apt
+    ;;
+  dnf)
+    install_core_dnf
+    install_neovim_dnf
+    ;;
+esac
+
+install_zsh_history_substring_search
+
+# Optional
+echo -e "\n${BOLD}Optional components${RESET}"
+
+if prompt "Install Docker (CE + Compose + BuildX via Docker's official repo)?"; then
+  case "$PKG_MANAGER" in
+    apt) install_docker_apt ;;
+    dnf) install_docker_dnf ;;
+  esac
+else
+  ok "Skipping Docker"
+fi
+
+if prompt "Install Node via NVM?"; then
+  install_nvm
+else
+  ok "Skipping NVM / Node"
+fi
+
+echo -e "\n${GREEN}${BOLD}Done.${RESET}\n"
