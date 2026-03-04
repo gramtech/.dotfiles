@@ -32,11 +32,12 @@ alias reload='exec zsh'                                        # reload shell in
 #  2.  Navigation
 #  ---------------------------------------------------------------------------
 
-alias ~='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
+alias .3='cd ../../..'
+alias .4='cd ../../../..'
+alias .5='cd ../../../../..'
+alias .6='cd ../../../../../..'
 
 
 #  ---------------------------------------------------------------------------
@@ -54,6 +55,7 @@ alias ll='ls -lh'
 alias la='ls -lAh'
 alias lt='ls -lht'                                             # sort by modified time
 alias lsd='ls -l | grep "^d"'                                 # list directories only
+alias less='less -R'                                           # always show colour in less
 
 
 #  ---------------------------------------------------------------------------
