@@ -1,3 +1,7 @@
+# Ensure brew is discoverable in interactive shells
+[[ -x /opt/homebrew/bin/brew ]] && export PATH="/opt/homebrew/bin:$PATH"
+[[ -x /usr/local/bin/brew ]] && export PATH="/usr/local/bin:$PATH"
+
 # iTerm2 shell integration (Mac)
 if [[ -r "$HOME/.iterm2_shell_integration.zsh" ]]; then
   source "$HOME/.iterm2_shell_integration.zsh"
@@ -11,3 +15,22 @@ fi
 
 # fzf (Mac) — if installed via brew's fzf install script
 [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+
+# --- zsh UX (mac) ---
+if command -v brew >/dev/null 2>&1; then
+  BREW_PREFIX="$(brew --prefix)"
+
+  # autosuggestions
+  AUTOSUG="$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  [[ -r "$AUTOSUG" ]] && source "$AUTOSUG"
+
+  # history substring search
+  HISTSS="$BREW_PREFIX/share/zsh-history-substring-search/zsh-history-substring-search.zsh"
+  [[ -r "$HISTSS" ]] && source "$HISTSS"
+  bindkey '^[[A' history-substring-search-up 2>/dev/null
+  bindkey '^[[B' history-substring-search-down 2>/dev/null
+
+  # syntax highlighting MUST be last
+  SYNTAXHL="$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  [[ -r "$SYNTAXHL" ]] && source "$SYNTAXHL"
+fi

@@ -1,11 +1,14 @@
+# ~/.zshrc — dispatcher for modular zsh config
+
+# Stop if non-interactive shell
 [[ -o interactive ]] || return
 
-# Load portable config
+# Load shared config
 if [[ -r "$HOME/.config/zsh/zshrc.common" ]]; then
   source "$HOME/.config/zsh/zshrc.common"
 fi
 
-# OS-specific overlays
+# Load OS-specific overlay
 case "$(uname -s)" in
   Darwin)
     [[ -r "$HOME/.config/zsh/zshrc.darwin" ]] && source "$HOME/.config/zsh/zshrc.darwin"
