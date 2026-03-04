@@ -1,2 +1,53 @@
-# Linux-specific tweaks can go here later (keep empty for now)
-true
+# Linux-specific zsh config — mirrors the structure of zshrc.darwin
+
+# --- PATH ---
+[[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
+[[ -d "$HOME/.cargo/bin" ]] && export PATH="$HOME/.cargo/bin:$PATH"
+
+# --- SSH agent ---
+# On most servers the agent is provided by the system/session; start one only as a fallback
+if [[ -z "$SSH_AUTH_SOCK" ]]; then
+  eval "$(ssh-agent -s)" >/dev/null
+fi
+
+# --- fzf key bindings + completion ---
+# Debian/Ubuntu system install
+if [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]]; then
+  source /usr/share/doc/fzf/examples/key-bindings.zsh
+fi
+if [[ -f /usr/share/doc/fzf/examples/completion.zsh ]]; then
+  source /usr/share/doc/fzf/examples/completion.zsh
+fi
+# Fallback: installed via git or ~/bin
+[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+
+# --- zsh plugins ---
+# Prefer system packages; fall back to user-local clones (~/.zsh/<plugin>)
+
+# autosuggestions
+if [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+elif [[ -f "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# history substring search
+if [[ -f /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh ]]; then
+  source /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+elif [[ -f "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ]]; then
+  source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
+fi
+bindkey '^[[A' history-substring-search-up 2>/dev/null
+bindkey '^[[B' history-substring-search-down 2>/dev/null
+
+# syntax highlighting — MUST be last
+if [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+elif [[ -f "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+# --- bat: Debian/Ubuntu installs it as 'batcat' ---
+if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+  alias bat='batcat'
+fi
