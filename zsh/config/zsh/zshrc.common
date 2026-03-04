@@ -22,5 +22,35 @@ compinit -C
 
 bindkey -e
 
+# ---------- fzf ergonomics ----------
+# If you already source ~/.fzf.zsh (you do on mac), these vars tune its widgets.
+
+# Better default search command for fzf (fast, respects .gitignore)
+if command -v rg >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+fi
+
+# Ctrl-R: history with a preview pane
+# (Preview just shows the command nicely; there is no "output preview" available from shell history.)
+export FZF_CTRL_R_OPTS='
+  --height 40%
+  --layout=reverse
+  --border
+  --preview-window=down:4:wrap
+  --preview "echo {} | sed -E \"s/^[[:space:]]*[0-9]+[[:space:]]+//\" | (command -v bat >/dev/null && bat -l sh --style=plain --color=always || cat)"
+'
+
+# Alt-C: jump to directory (if fzf provides it; it usually does via ~/.fzf.zsh)
+export FZF_ALT_C_OPTS='
+  --height 40%
+  --layout=reverse
+  --border
+  --preview "command -v eza >/dev/null && eza -la --color=always {} || ls -la {}"
+'
+
 alias v='nvim'
 
+# Edit current command line in $EDITOR (Ctrl-x Ctrl-e)
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
