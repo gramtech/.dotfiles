@@ -168,6 +168,40 @@ install_docker_dnf() {
   warn "Log out and back in for docker group membership to take effect"
 }
 
+# ── Helm ───────────────────────────────────────────────────────────────────
+
+install_helm() {
+  info "Installing Helm"
+  curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  ok "Helm $(helm version --short) installed"
+}
+
+# ── Terraform ──────────────────────────────────────────────────────────────
+
+install_terraform_apt() {
+  info "Adding HashiCorp repository (apt)"
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://apt.releases.hashicorp.com/gpg \
+    | sudo gpg --dearmor -o /etc/apt/keyrings/hashicorp.gpg
+  sudo chmod a+r /etc/apt/keyrings/hashicorp.gpg
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/hashicorp.gpg] \
+    https://apt.releases.hashicorp.com \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
+    | sudo tee /etc/apt/sources.list.d/hashicorp.list >/dev/null
+  sudo apt-get update -qq
+  sudo apt-get install -y terraform
+  ok "Terraform $(terraform version -json | grep '"terraform_version"' | cut -d '"' -f 4) installed"
+}
+
+install_terraform_dnf() {
+  info "Adding HashiCorp repository (dnf)"
+  sudo dnf install -y dnf-plugins-core
+  sudo dnf config-manager --add-repo https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
+  sudo dnf install -y terraform
+  ok "Terraform $(terraform version -json | grep '"terraform_version"' | cut -d '"' -f 4) installed"
+}
+
 # ── NVM + Node ─────────────────────────────────────────────────────────────
 
 install_nvm() {
@@ -208,22 +242,71 @@ esac
 
 install_zsh_history_substring_search
 
-# Optional
-echo -e "\n${BOLD}Optional components${RESET}"
+# ── Optional components ─────────────────────────────────────────────────────
 
-if prompt "Install Docker (CE + Compose + BuildX via Docker's official repo)?"; then
-  case "$PKG_MANAGER" in
-    apt) install_docker_apt ;;
-    dnf) install_docker_dnf ;;
+install_optional() {
+  local name="$1"
+  case "$name" in
+    docker)
+      case "$PKG_MANAGER" in
+        apt) install_docker_apt ;;
+        dnf) install_docker_dnf ;;
+      esac
+      ;;
+    node)    install_nvm ;;
+    helm)    install_helm ;;
+    terraform)
+      case "$PKG_MANAGER" in
+        apt) install_terraform_apt ;;
+        dnf) install_terraform_dnf ;;
+      esac
+      ;;
   esac
-else
-  ok "Skipping Docker"
-fi
+}
 
-if prompt "Install Node via NVM?"; then
-  install_nvm
-else
-  ok "Skipping NVM / Node"
-fi
+OPTIONAL_NAMES=(docker node helm terraform)
+OPTIONAL_DESCS=(
+  "Docker CE + Compose + BuildX  (Docker's official repo)"
+  "Node.js                        (via NVM)"
+  "Helm                           (official get-helm-3 script)"
+  "Terraform                      (HashiCorp's official repo)"
+)
+
+echo -e "\n${BOLD}Optional components${RESET}"
+echo "────────────────────────"
+for i in "${!OPTIONAL_NAMES[@]}"; do
+  printf "  %d. %s\n" "$((i+1))" "${OPTIONAL_DESCS[$i]}"
+done
+echo ""
+echo -e "  ${BOLD}a${RESET}  Install all"
+echo -e "  ${BOLD}i${RESET}  Choose individually"
+echo -e "  ${BOLD}s${RESET}  Skip all"
+echo ""
+printf "  Choice [a/i/s]: "
+read -r mode
+
+case "$mode" in
+  a|A)
+    for name in "${OPTIONAL_NAMES[@]}"; do
+      install_optional "$name"
+    done
+    ;;
+  i|I)
+    for i in "${!OPTIONAL_NAMES[@]}"; do
+      name="${OPTIONAL_NAMES[$i]}"
+      desc="${OPTIONAL_DESCS[$i]}"
+      printf "\n  Install %s? [y/N] " "$desc"
+      read -r answer
+      if [[ "$answer" =~ ^[Yy]$ ]]; then
+        install_optional "$name"
+      else
+        ok "Skipping ${name}"
+      fi
+    done
+    ;;
+  *)
+    ok "Skipping all optional components"
+    ;;
+esac
 
 echo -e "\n${GREEN}${BOLD}Done.${RESET}\n"
