@@ -1,68 +1,69 @@
 # .dotfiles
 
-macOS-focused development environment: SSH via 1Password, Zsh, Tmux, and Neovim.
+macOS and Linux development environment: Zsh, Tmux, Neovim, SSH via 1Password.
 
 ## Structure
 
 ```
 .dotfiles/
-├── bin/          # Utility scripts
+├── bin/          # Utility scripts (install-terminfo)
 ├── nvim/         # Neovim configuration (lazy.nvim)
-├── ssh/          # SSH client config
+├── ssh/          # SSH client config (macOS / 1Password)
 ├── terminfo/     # Custom tmux-256color terminfo (italic support)
 ├── tmux/         # Tmux configuration
 └── zsh/          # Zsh configuration (modular, OS-aware)
+    ├── .zshenv
+    ├── .zprofile
+    ├── .zshrc
+    └── config/zsh/
+        ├── zshrc.common    # Shared config (history, fzf, aliases, Claude helpers)
+        ├── zshrc.darwin    # macOS: Homebrew, iTerm2, 1Password SSH, zsh plugins
+        ├── zshrc.linux     # Linux: PATH, fzf, zsh plugins, bat alias
+        └── aliases.zsh
 ```
 
-## Setup
+## Install
 
-### 1. Terminfo
-
-Install the custom terminfo for proper italic support in tmux:
+Clone the repo and run the install script:
 
 ```sh
-./bin/install-terminfo
+git clone git@github.com:youruser/dotfiles.git ~/.dotfiles
+~/.dotfiles/install.sh
 ```
 
-### 2. SSH
+The script will:
+- Install all required packages (Homebrew on macOS; apt/dnf/pacman on Linux)
+- Create all symlinks
+- Install the custom terminfo
+- Set zsh as the default shell if needed
 
-Symlink or copy `ssh/config` to `~/.ssh/config`. Requires [1Password](https://1password.com/) with the SSH agent enabled.
+### macOS — additional steps
 
-### 3. Zsh
+1. Install [1Password](https://1password.com/) and enable the SSH agent under **Settings → Developer**
+2. Install [iTerm2](https://iterm2.com/), then install shell integration:
+   ```sh
+   curl -L https://iterm2.com/shell_integration/install_shell_integration.sh | bash
+   ```
 
-Symlink the zsh config files:
+### Linux — notes
 
-```sh
-ln -sf ~/.dotfiles/zsh/.zshenv ~/.zshenv
-ln -sf ~/.dotfiles/zsh/.zprofile ~/.zprofile
-ln -sf ~/.dotfiles/zsh/.zshrc ~/.zshrc
-```
-
-### 4. Tmux
-
-Symlink the tmux config:
-
-```sh
-ln -sf ~/.dotfiles/tmux/.tmux.conf ~/.tmux.conf
-```
-
-### 5. Neovim
-
-Symlink the nvim config:
-
-```sh
-ln -sf ~/.dotfiles/nvim ~/.config/nvim
-```
+- `eza` requires Ubuntu 23.10+ / Debian 13+. On older distros: `cargo install eza` or `snap install eza`
+- Neovim from apt is often outdated. If the installed version is < 0.9, grab an [AppImage](https://github.com/neovim/neovim/releases) instead
+- SSH config is **not** symlinked on Linux (it references the 1Password socket). Manage SSH keys directly or via your own agent setup
 
 ## What's Configured
 
 ### Zsh
 
-- Modular: `zshrc.common` + OS-specific overlays (`zshrc.darwin`, `zshrc.linux`)
+- Modular: `zshrc.common` loaded on all platforms, then `zshrc.darwin` or `zshrc.linux`
 - 20k line history, deduplicated, shared across sessions
-- `t` function: create or attach to a `main` tmux session
-- `v` alias for `nvim`
-- fzf integration (macOS, via Homebrew)
+- `t` — create or attach to a `main` tmux session
+- `v` — alias for `nvim`
+- fzf key bindings with ripgrep as the default search command
+- fzf preview: history (`Ctrl+R`) with bat syntax highlighting, directory jump (`Alt+C`) with eza
+- zsh-autosuggestions, zsh-history-substring-search, zsh-syntax-highlighting
+- `ccmd` — ask Claude for next-command suggestions from the shell
+- `ccmd_in` — pipe command output into Claude for diagnosis
 - iTerm2 shell integration (macOS)
 
 ### Tmux
@@ -70,8 +71,8 @@ ln -sf ~/.dotfiles/nvim ~/.config/nvim
 - Prefix: `Ctrl+A`
 - Vi copy mode, windows start at index 1, 100k line scrollback
 - Splits: `|` (horizontal), `-` (vertical)
-- Pane navigation: `hjkl` (integrates with Neovim splits via smart passthrough)
-- Preserves `SSH_AUTH_SOCK` across sessions for 1Password SSH agent
+- Pane navigation: `hjkl` with smart Neovim passthrough (`vim-tmux-navigator`)
+- Preserves `SSH_AUTH_SOCK` across sessions
 
 ### Neovim
 
@@ -94,6 +95,6 @@ Key LSP bindings: `gd` (definition), `gr` (references), `K` (hover), `<leader>rn
 
 ### SSH
 
-- Agent: 1Password SSH agent socket
+- Agent: 1Password SSH agent socket (macOS only)
 - `ControlMaster` with 10-minute `ControlPersist` for fast reconnects
 - `ServerAliveInterval 30`
