@@ -123,5 +123,5 @@ alias openPorts='sudo lsof -i | grep LISTEN'                  # all listening po
 #  7.  System
 #  ---------------------------------------------------------------------------
 
-alias memhogs='ps wwaxm -o pid,stat,vsize,rss,time,command | head -10'    # top memory consumers
-alias cpuhogs='ps wwaxr -o pid,stat,%cpu,time,command | head -10'         # top CPU consumers
+alias memhogs='ps aux | sort -rk 4 | head -10'    # top memory consumers (sort by %MEM)
+alias cpuhogs='ps aux | sort -rk 3 | head -10'   # top CPU consumers (sort by %CPU)
