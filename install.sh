@@ -48,41 +48,66 @@ install_linux() {
 
 # ── Symlinks ──────────────────────────────────────────────────────────────────
 
+# Back up a real file/dir (not a symlink) before it gets replaced.
+# All backups for a given install run land in the same timestamped directory.
+_BACKUP_DIR=""
+backup_if_needed() {
+  local target="$1"
+  [[ -e "$target" || -L "$target" ]] || return 0  # nothing there — nothing to do
+  [[ -L "$target" ]] && return 0                  # already a symlink — ln -sf handles it
+  if [[ -z "$_BACKUP_DIR" ]]; then
+    _BACKUP_DIR="$HOME/.dotfiles_backup/$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$_BACKUP_DIR"
+  fi
+  mv "$target" "$_BACKUP_DIR/"
+  warn "Backed up $(basename "$target") → $_BACKUP_DIR/"
+}
+
 create_symlinks() {
   info "Creating symlinks"
 
   # zsh entry points
+  backup_if_needed "$HOME/.zshenv"
   ln -sf "$DOTFILES/zsh/.zshenv"   "$HOME/.zshenv"
+  backup_if_needed "$HOME/.zprofile"
   ln -sf "$DOTFILES/zsh/.zprofile" "$HOME/.zprofile"
+  backup_if_needed "$HOME/.zshrc"
   ln -sf "$DOTFILES/zsh/.zshrc"    "$HOME/.zshrc"
   ok "zsh"
 
   # ~/.config is a real dir (XDG standard, shared by many tools)
   mkdir -p "$HOME/.config"
 
-  # ~/.config/zsh is a symlink — if a real dir exists here, remove it first
-  if [[ -d "$HOME/.config/zsh" && ! -L "$HOME/.config/zsh" ]]; then
-    rm -rf "$HOME/.config/zsh"
-  fi
+  backup_if_needed "$HOME/.config/zsh"
   ln -sf "$DOTFILES/zsh/config/zsh" "$HOME/.config/zsh"
   ok "zsh config dir"
 
   # tmux
+  backup_if_needed "$HOME/.tmux.conf"
   ln -sf "$DOTFILES/tmux/.tmux.conf" "$HOME/.tmux.conf"
   ok "tmux"
 
   # neovim
+  backup_if_needed "$HOME/.config/nvim"
   ln -sf "$DOTFILES/nvim" "$HOME/.config/nvim"
   ok "neovim"
+
+  # git
+  backup_if_needed "$HOME/.gitconfig"
+  ln -sf "$DOTFILES/git/.gitconfig" "$HOME/.gitconfig"
+  ok "git (set identity in ~/.gitconfig.local)"
 
   # SSH — macOS only (config references 1Password socket)
   if [[ "$OS" == "Darwin" ]]; then
     mkdir -p "$HOME/.ssh"
     chmod 700 "$HOME/.ssh"
+    backup_if_needed "$HOME/.ssh/config"
     ln -sf "$DOTFILES/ssh/config" "$HOME/.ssh/config"
     chmod 600 "$HOME/.ssh/config"
     ok "SSH config (requires 1Password SSH agent)"
   fi
+
+  [[ -n "$_BACKUP_DIR" ]] && info "Pre-existing files backed up to $_BACKUP_DIR"
 }
 
 # ── Terminfo ──────────────────────────────────────────────────────────────────

@@ -1,0 +1,40 @@
+# Shared git config — managed by dotfiles.
+# Put user.name, user.email, and any machine-specific settings in ~/.gitconfig.local
+# (that file is NOT tracked in the dotfiles repo).
+#
+# Example ~/.gitconfig.local:
+#   [user]
+#     name  = Your Name
+#     email = you@example.com
+
+[include]
+	path = ~/.gitconfig.local
+
+[core]
+	editor     = nvim
+	autocrlf   = input
+	pager      = less -FRX
+
+[pull]
+	rebase = true
+
+[push]
+	default          = current
+	autoSetupRemote  = true
+
+[merge]
+	conflictstyle = diff3
+
+[diff]
+	colorMoved = zebra
+
+[init]
+	defaultBranch = main
+
+[alias]
+	st      = status
+	co      = checkout
+	br      = branch
+	lg      = log --oneline --graph --decorate --all
+	unstage = restore --staged
+	last    = log -1 HEAD --stat

@@ -108,6 +108,19 @@ Do NOT run anything."
 autoload -Uz compinit
 compinit -C
 
+# Helm completions — generated once and cached; regenerate by deleting the cache file
+if command -v helm >/dev/null 2>&1; then
+  _helm_cache="${XDG_CACHE_HOME:-$HOME/.cache}/helm-completion.zsh"
+  [[ -f "$_helm_cache" ]] || helm completion zsh > "$_helm_cache" 2>/dev/null
+  [[ -f "$_helm_cache" ]] && source "$_helm_cache"
+fi
+
+# Terraform completions (uses bash-compat completion)
+if command -v terraform >/dev/null 2>&1; then
+  autoload -U +X bashcompinit && bashcompinit
+  complete -o nospace -C terraform terraform
+fi
+
 # ---------- key bindings ----------
 # bindkey -e must come first — it resets the keymap to emacs defaults,
 # so all custom bindings must be registered after it.

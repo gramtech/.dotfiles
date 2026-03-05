@@ -141,6 +141,17 @@ Plugin manager: [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 Key LSP bindings: `gd` (definition), `gr` (references), `K` (hover), `<leader>rn` (rename), `<leader>ca` (code action)
 
+### Git
+
+A shared `git/.gitconfig` is symlinked to `~/.gitconfig`. It sets sensible defaults (editor, pull rebase, useful aliases) and pulls in `~/.gitconfig.local` for machine-specific identity:
+
+```ini
+# ~/.gitconfig.local  (not tracked)
+[user]
+  name  = Your Name
+  email = you@example.com
+```
+
 ### asdf
 
 Runtime versions are managed by [asdf](https://asdf-vm.com/). On macOS it is installed via Homebrew; on Linux via git clone into `~/.asdf`.
