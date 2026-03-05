@@ -108,9 +108,13 @@ Do NOT run anything."
 autoload -Uz compinit
 compinit -C
 
+# ---------- key bindings ----------
+# bindkey -e must come first — it resets the keymap to emacs defaults,
+# so all custom bindings must be registered after it.
+
 bindkey -e
 
-# Edit current command line in $EDITOR (Ctrl-x Ctrl-e)
+# Ctrl-x Ctrl-e: edit current command line in $EDITOR
 autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^X^E' edit-command-line

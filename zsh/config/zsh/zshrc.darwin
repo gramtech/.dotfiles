@@ -16,6 +16,9 @@ fi
 # fzf (Mac) — if installed via brew's fzf install script
 [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
 
+# --- asdf version manager ---
+[[ -f "$(brew --prefix asdf)/libexec/asdf.sh" ]] && source "$(brew --prefix asdf)/libexec/asdf.sh"
+
 # --- zsh UX (mac) ---
 if command -v brew >/dev/null 2>&1; then
   BREW_PREFIX="$(brew --prefix)"

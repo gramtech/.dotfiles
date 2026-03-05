@@ -1,6 +1,31 @@
 # .dotfiles
 
-macOS and Linux development environment: Zsh, Tmux, Neovim, SSH via 1Password, Helm, Terraform.
+```
+ ██████╗  ██████╗ ████████╗███████╗██╗██╗     ███████╗███████╗
+ ██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝██║██║     ██╔════╝██╔════╝
+ ██║  ██║██║   ██║   ██║   █████╗  ██║██║     █████╗  ███████╗
+ ██║  ██║██║   ██║   ██║   ██╔══╝  ██║██║     ██╔══╝  ╚════██║
+ ██████╔╝╚██████╔╝   ██║   ██║     ██║███████╗███████╗███████║
+ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝     ╚═╝╚══════╝╚══════╝╚══════╝
+```
+
+A portable, modular development environment for macOS and Linux. One install script bootstraps everything: packages, symlinks, shell config, and tooling — leaving a consistent setup on any machine.
+
+**Stack at a glance:**
+
+| Layer | Tool |
+|---|---|
+| Shell | Zsh (modular, OS-aware) |
+| Terminal multiplexer | Tmux |
+| Editor | Neovim (lazy.nvim) |
+| Version manager | asdf |
+| Package manager | Homebrew (macOS) / apt or dnf (Linux) |
+| SSH agent | 1Password (macOS) |
+| Infrastructure | Helm, Terraform |
+| Fuzzy finder | fzf + ripgrep |
+| AI shell helpers | Claude (`ccmd`, `ccmd_in`) |
+
+---
 
 ## Structure
 
@@ -19,10 +44,12 @@ macOS and Linux development environment: Zsh, Tmux, Neovim, SSH via 1Password, H
     ├── .zshrc
     └── config/zsh/
         ├── zshrc.common    # Shared config (history, fzf, aliases, Claude helpers)
-        ├── zshrc.darwin    # macOS: Homebrew, iTerm2, 1Password SSH, zsh plugins
-        ├── zshrc.linux     # Linux: PATH, fzf, zsh plugins, bat alias
+        ├── zshrc.darwin    # macOS: Homebrew, iTerm2, 1Password SSH, asdf, zsh plugins
+        ├── zshrc.linux     # Linux: PATH, fzf, asdf, zsh plugins, bat alias
         └── aliases.zsh
 ```
+
+---
 
 ## Install
 
@@ -47,9 +74,10 @@ The script will:
 Optional components
 ────────────────────────
   1. Docker CE + Compose + BuildX  (Docker's official repo)
-  2. Node.js                        (via NVM)
-  3. Helm                           (official get-helm-3 script)
-  4. Terraform                      (HashiCorp's official repo)
+  2. asdf version manager           (git clone, manages Node/Python/Go/etc.)
+  3. Node.js                        (via NVM)
+  4. Helm                           (official get-helm-3 script)
+  5. Terraform                      (HashiCorp's official repo)
 
   a  Install all
   i  Choose individually
@@ -69,6 +97,8 @@ Optional components
 - `eza` requires Ubuntu 23.10+ / Debian 13+. On older distros: `cargo install eza` or `snap install eza`
 - Neovim from apt is often outdated. If the installed version is < 0.9, grab an [AppImage](https://github.com/neovim/neovim/releases) instead
 - SSH config is **not** symlinked on Linux (it references the 1Password socket). Manage SSH keys directly or via your own agent setup
+
+---
 
 ## What's Configured
 
@@ -111,6 +141,22 @@ Plugin manager: [lazy.nvim](https://github.com/folke/lazy.nvim)
 **Leader key**: `Space`
 
 Key LSP bindings: `gd` (definition), `gr` (references), `K` (hover), `<leader>rn` (rename), `<leader>ca` (code action)
+
+### asdf
+
+Runtime versions are managed by [asdf](https://asdf-vm.com/). On macOS it is installed via Homebrew; on Linux via git clone into `~/.asdf`.
+
+After install, add plugins and set global versions:
+
+```sh
+asdf plugin add nodejs
+asdf plugin add python
+asdf plugin add golang
+asdf install nodejs latest
+asdf global nodejs latest
+```
+
+Per-project versions are pinned with a `.tool-versions` file in the project root. A global `~/.tool-versions` can be symlinked from the dotfiles root to set machine-wide defaults.
 
 ### SSH
 

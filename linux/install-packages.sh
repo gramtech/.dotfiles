@@ -202,6 +202,23 @@ install_terraform_dnf() {
   ok "Terraform $(terraform version -json | grep '"terraform_version"' | cut -d '"' -f 4) installed"
 }
 
+# ── asdf version manager ───────────────────────────────────────────────────
+
+install_asdf() {
+  if [[ -d "$HOME/.asdf" ]]; then
+    ok "asdf already installed at ~/.asdf"
+    return
+  fi
+  info "Installing asdf"
+  local version
+  version=$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest \
+    | grep '"tag_name"' | cut -d '"' -f 4)
+  git clone --depth=1 --branch "$version" \
+    https://github.com/asdf-vm/asdf.git "$HOME/.asdf"
+  ok "asdf ${version} installed"
+  warn "Run 'source ~/.zshrc' to activate asdf, then add plugins with: asdf plugin add <name>"
+}
+
 # ── NVM + Node ─────────────────────────────────────────────────────────────
 
 install_nvm() {
@@ -253,6 +270,7 @@ install_optional() {
         dnf) install_docker_dnf ;;
       esac
       ;;
+    asdf)    install_asdf ;;
     node)    install_nvm ;;
     helm)    install_helm ;;
     terraform)
@@ -264,9 +282,10 @@ install_optional() {
   esac
 }
 
-OPTIONAL_NAMES=(docker node helm terraform)
+OPTIONAL_NAMES=(docker asdf node helm terraform)
 OPTIONAL_DESCS=(
   "Docker CE + Compose + BuildX  (Docker's official repo)"
+  "asdf version manager           (git clone, manages Node/Python/Go/etc.)"
   "Node.js                        (via NVM)"
   "Helm                           (official get-helm-3 script)"
   "Terraform                      (HashiCorp's official repo)"
