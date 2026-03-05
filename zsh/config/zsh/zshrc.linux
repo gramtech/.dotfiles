@@ -5,10 +5,21 @@
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$HOME/.cargo/bin:$PATH"
 
 # --- SSH agent ---
-# On most servers the agent is provided by the system/session; start one only as a fallback
-if [[ -z "$SSH_AUTH_SOCK" ]]; then
-  eval "$(ssh-agent -s)" >/dev/null
+# Reuse an existing agent socket if present; start one only as a last resort.
+_ssh_env="$HOME/.ssh/agent.env"
+_agent_running() { [[ -S "$SSH_AUTH_SOCK" ]] && ssh-add -l &>/dev/null; }
+if ! _agent_running; then
+  if [[ -f "$_ssh_env" ]]; then
+    source "$_ssh_env" >/dev/null
+  fi
+  if ! _agent_running; then
+    ssh-agent > "$_ssh_env"
+    chmod 600 "$_ssh_env"
+    source "$_ssh_env" >/dev/null
+  fi
 fi
+unset _ssh_env
+unfunction _agent_running 2>/dev/null
 
 # --- fzf key bindings + completion ---
 # Debian/Ubuntu system install
