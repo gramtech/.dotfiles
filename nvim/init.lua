@@ -20,8 +20,9 @@ vim.opt.tabstop = 2
 vim.opt.smartindent = true
 vim.opt.mouse = "a"
 
-vim.keymap.set("n", "<leader>w", "<cmd>w<cr>")
-vim.keymap.set("n", "<leader>q", "<cmd>q<cr>")
+vim.keymap.set("n", "<leader>w", "<cmd>w<cr>",  { desc = "Save" })
+vim.keymap.set("n", "<leader>q", "<cmd>q<cr>",  { desc = "Quit" })
+vim.keymap.set("n", "<leader>Q", "<cmd>qa<cr>", { desc = "Quit all" })
 
 --------------------------------------------------
 -- Bootstrap lazy.nvim
@@ -51,9 +52,9 @@ require("lazy").setup({
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       local builtin = require("telescope.builtin")
-      vim.keymap.set("n", "<leader>ff", builtin.find_files)
-      vim.keymap.set("n", "<leader>fg", builtin.live_grep)
-      vim.keymap.set("n", "<leader>fb", builtin.buffers)
+      vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
+      vim.keymap.set("n", "<leader>fg", builtin.live_grep,  { desc = "Live grep" })
+      vim.keymap.set("n", "<leader>fb", builtin.buffers,    { desc = "Buffers" })
     end,
   },
 
@@ -74,6 +75,12 @@ require("lazy").setup({
     opts = {
       preset = "modern",
     },
+    config = function()
+      local wk = require("which-key")
+      wk.add({
+        { "<leader>f", group = "format/find" },
+      })
+    end,
   },
 
   {
@@ -214,9 +221,9 @@ require("lazy").setup({
         },
       })
 
-      vim.keymap.set("n", "<leader>f", function()
-        require("conform").format({ lsp_fallback = true })
-      end)
+      vim.keymap.set({ "n", "v" }, "<leader>f", function()
+        require("conform").format({ lsp_fallback = true, timeout_ms = 2000 })
+      end, { desc = "Format" })
 
     end,
   },
