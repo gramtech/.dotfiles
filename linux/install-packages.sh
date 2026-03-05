@@ -99,20 +99,30 @@ install_neovim_dnf() {
   ok "Neovim $(nvim --version | head -1) installed"
 }
 
-# ── zsh-history-substring-search ──────────────────────────────────────────
-# Not available in apt or dnf — clone to ~/.zsh/
+# ── zsh plugins (user-local fallback) ─────────────────────────────────────
+# Clone plugins to ~/.zsh/ for distros that don't package them.
+# zshrc.linux sources system paths first and falls back to these.
 
-install_zsh_history_substring_search() {
-  local dest="$HOME/.zsh/zsh-history-substring-search"
+_clone_zsh_plugin() {
+  local name="$1" url="$2"
+  local dest="$HOME/.zsh/$name"
   if [[ ! -d "$dest" ]]; then
-    info "Cloning zsh-history-substring-search"
-    git clone --depth=1 \
-      https://github.com/zsh-users/zsh-history-substring-search.git \
-      "$dest"
+    info "Cloning $name"
+    git clone --depth=1 "$url" "$dest"
     ok "Cloned to $dest"
   else
-    ok "zsh-history-substring-search already present"
+    ok "$name already present"
   fi
+}
+
+install_zsh_plugins() {
+  mkdir -p "$HOME/.zsh"
+  _clone_zsh_plugin zsh-autosuggestions \
+    https://github.com/zsh-users/zsh-autosuggestions.git
+  _clone_zsh_plugin zsh-history-substring-search \
+    https://github.com/zsh-users/zsh-history-substring-search.git
+  _clone_zsh_plugin zsh-syntax-highlighting \
+    https://github.com/zsh-users/zsh-syntax-highlighting.git
 }
 
 # ── Docker ─────────────────────────────────────────────────────────────────
@@ -238,7 +248,7 @@ case "$PKG_MANAGER" in
     ;;
 esac
 
-install_zsh_history_substring_search
+install_zsh_plugins
 
 # ── Optional components ─────────────────────────────────────────────────────
 
