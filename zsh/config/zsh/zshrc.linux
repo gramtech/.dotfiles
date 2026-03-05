@@ -22,15 +22,20 @@ unset _ssh_env
 unfunction _agent_running 2>/dev/null
 
 # --- fzf key bindings + completion ---
-# Debian/Ubuntu system install
+# Debian/Ubuntu
 if [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]]; then
   source /usr/share/doc/fzf/examples/key-bindings.zsh
+  [[ -f /usr/share/doc/fzf/examples/completion.zsh ]] && \
+    source /usr/share/doc/fzf/examples/completion.zsh
+# Fedora/RHEL (fzf package installs shell integrations here)
+elif [[ -f /usr/share/fzf/shell/key-bindings.zsh ]]; then
+  source /usr/share/fzf/shell/key-bindings.zsh
+  [[ -f /usr/share/fzf/shell/completion.zsh ]] && \
+    source /usr/share/fzf/shell/completion.zsh
+# Fallback: installed via fzf's own install script or ~/bin
+elif [[ -f "$HOME/.fzf.zsh" ]]; then
+  source "$HOME/.fzf.zsh"
 fi
-if [[ -f /usr/share/doc/fzf/examples/completion.zsh ]]; then
-  source /usr/share/doc/fzf/examples/completion.zsh
-fi
-# Fallback: installed via git or ~/bin
-[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
 
 # --- zsh plugins ---
 # Prefer system packages; fall back to user-local clones (~/.zsh/<plugin>)
