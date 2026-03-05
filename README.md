@@ -75,9 +75,8 @@ Optional components
 ────────────────────────
   1. Docker CE + Compose + BuildX  (Docker's official repo)
   2. asdf version manager           (git clone, manages Node/Python/Go/etc.)
-  3. Node.js                        (via NVM)
-  4. Helm                           (official get-helm-3 script)
-  5. Terraform                      (HashiCorp's official repo)
+  3. Helm                           (official get-helm-3 script)
+  4. Terraform                      (HashiCorp's official repo)
 
   a  Install all
   i  Choose individually
@@ -95,7 +94,7 @@ Optional components
 ### Linux — notes
 
 - `eza` requires Ubuntu 23.10+ / Debian 13+. On older distros: `cargo install eza` or `snap install eza`
-- Neovim from apt is often outdated. If the installed version is < 0.9, grab an [AppImage](https://github.com/neovim/neovim/releases) instead
+- Neovim from apt is often outdated. If the installed version is < 0.11, grab an [AppImage](https://github.com/neovim/neovim/releases) instead
 - SSH config is **not** symlinked on Linux (it references the 1Password socket). Manage SSH keys directly or via your own agent setup
 
 ---

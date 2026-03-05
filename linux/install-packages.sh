@@ -213,31 +213,12 @@ install_asdf() {
   local version
   version=$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest \
     | grep '"tag_name"' | cut -d '"' -f 4)
+  trap 'rm -rf "$HOME/.asdf"; echo "asdf clone failed, cleaned up partial directory"' ERR
   git clone --depth=1 --branch "$version" \
     https://github.com/asdf-vm/asdf.git "$HOME/.asdf"
+  trap - ERR
   ok "asdf ${version} installed"
   warn "Run 'source ~/.zshrc' to activate asdf, then add plugins with: asdf plugin add <name>"
-}
-
-# ── NVM + Node ─────────────────────────────────────────────────────────────
-
-install_nvm() {
-  info "Installing NVM"
-
-  if [[ -d "$HOME/.nvm" ]]; then
-    ok "NVM already installed at ~/.nvm"
-    return
-  fi
-
-  # Fetch latest NVM release tag
-  local nvm_version
-  nvm_version=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest \
-    | grep '"tag_name"' | cut -d '"' -f 4)
-
-  curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_version}/install.sh" | bash
-
-  ok "NVM ${nvm_version} installed"
-  warn "Run 'source ~/.zshrc' then 'nvm install --lts' to install the latest LTS Node"
 }
 
 # ── Main ───────────────────────────────────────────────────────────────────
@@ -271,7 +252,6 @@ install_optional() {
       esac
       ;;
     asdf)    install_asdf ;;
-    node)    install_nvm ;;
     helm)    install_helm ;;
     terraform)
       case "$PKG_MANAGER" in
@@ -282,11 +262,10 @@ install_optional() {
   esac
 }
 
-OPTIONAL_NAMES=(docker asdf node helm terraform)
+OPTIONAL_NAMES=(docker asdf helm terraform)
 OPTIONAL_DESCS=(
   "Docker CE + Compose + BuildX  (Docker's official repo)"
   "asdf version manager           (git clone, manages Node/Python/Go/etc.)"
-  "Node.js                        (via NVM)"
   "Helm                           (official get-helm-3 script)"
   "Terraform                      (HashiCorp's official repo)"
 )
