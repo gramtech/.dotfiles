@@ -85,12 +85,21 @@ install_core_dnf() {
 # System packages are often outdated — install from official source instead
 
 install_neovim_apt() {
-  info "Installing Neovim (stable PPA)"
-  sudo apt-get install -y software-properties-common
-  sudo add-apt-repository -y ppa:neovim-ppa/stable
-  sudo apt-get update -qq
-  sudo apt-get install -y neovim
-  ok "Neovim $(nvim --version | head -1) installed"
+  info "Installing Neovim (latest stable AppImage)"
+  local dest="$HOME/.local/bin"
+  mkdir -p "$dest"
+  local url
+  url=$(curl -fsSL https://api.github.com/repos/neovim/neovim/releases/latest \
+    | grep '"browser_download_url"' \
+    | grep 'nvim-linux-x86_64\.appimage"' \
+    | cut -d '"' -f 4)
+  if [[ -z "$url" ]]; then
+    warn "Could not determine latest Neovim AppImage URL; skipping"
+    return 1
+  fi
+  curl -fsSL "$url" -o "$dest/nvim"
+  chmod +x "$dest/nvim"
+  ok "Neovim $("$dest/nvim" --version | head -1) installed to $dest/nvim"
 }
 
 install_neovim_dnf() {
