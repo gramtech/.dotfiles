@@ -49,6 +49,7 @@ install_core_apt() {
   sudo apt-get install -y \
     zsh tmux git curl wget \
     fzf ripgrep htop gnupg \
+    grc \
     zsh-autosuggestions zsh-syntax-highlighting \
     ca-certificates apt-transport-https
 
@@ -74,7 +75,7 @@ install_core_dnf() {
   sudo dnf install -y \
     zsh tmux git curl wget \
     fzf ripgrep htop gnupg2 \
-    bat eza \
+    bat eza grc \
     zsh-autosuggestions zsh-syntax-highlighting \
     ca-certificates
 

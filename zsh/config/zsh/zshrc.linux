@@ -56,6 +56,15 @@ fi
 bindkey '^[[A' history-substring-search-up 2>/dev/null
 bindkey '^[[B' history-substring-search-down 2>/dev/null
 
+# grc — colourize ip, ping, df, netstat, etc.
+# Debian/Ubuntu installs to /etc/grc.zsh; Fedora/RHEL to /usr/share/grc/grc.zsh
+if command -v grc >/dev/null 2>&1; then
+  for _grc_script in /etc/grc.zsh /usr/share/grc/grc.zsh; do
+    [[ -r "$_grc_script" ]] && { source "$_grc_script"; break; }
+  done
+  unset _grc_script
+fi
+
 # syntax highlighting — MUST be last
 if [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

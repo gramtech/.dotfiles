@@ -33,6 +33,10 @@ if command -v brew >/dev/null 2>&1; then
   bindkey '^[[A' history-substring-search-up 2>/dev/null
   bindkey '^[[B' history-substring-search-down 2>/dev/null
 
+  # grc — colourize ip, ping, df, netstat, etc.
+  GRC="$BREW_PREFIX/etc/grc.zsh"
+  [[ -r "$GRC" ]] && source "$GRC"
+
   # syntax highlighting MUST be last
   SYNTAXHL="$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
   [[ -r "$SYNTAXHL" ]] && source "$SYNTAXHL"
