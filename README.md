@@ -110,6 +110,7 @@ Optional components
 - fzf key bindings with ripgrep as the default search command
 - fzf preview: history (`Ctrl+R`) with bat syntax highlighting, directory jump (`Alt+C`) with eza
 - zsh-autosuggestions, zsh-history-substring-search, zsh-syntax-highlighting
+- grc (Generic Colouriser) — colourizes output of `ip`, `ping`, `df`, `netstat`, `ps`, and more
 - `ccmd` — ask Claude for next-command suggestions from the shell
 - `ccmd_in` — pipe command output into Claude for diagnosis
 - iTerm2 shell integration (macOS)
