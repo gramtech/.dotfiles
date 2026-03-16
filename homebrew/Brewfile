@@ -89,9 +89,9 @@ cask "signal"
 cask "discord"
 
 # Development
-cask "docker"
+cask "docker-desktop"
 cask "postman"
-cask "wireshark"
+cask "wireshark-app"
 
 # Media
 cask "vlc"

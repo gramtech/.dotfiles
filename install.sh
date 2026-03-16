@@ -35,7 +35,7 @@ install_macos() {
   local fzf_install="$(brew --prefix)/opt/fzf/install"
   if [[ -f "$fzf_install" ]]; then
     info "Installing fzf key bindings"
-    "$fzf_install" --key-bindings --completion --no-update-rc
+    "$fzf_install" --key-bindings --completion --no-update-rc --no-bash --no-fish
     ok "fzf key bindings installed"
   fi
 }
@@ -110,6 +110,43 @@ create_symlinks() {
   [[ -n "$_BACKUP_DIR" ]] && info "Pre-existing files backed up to $_BACKUP_DIR"
 }
 
+# ── Git identity ──────────────────────────────────────────────────────────────
+
+setup_git_identity() {
+  if [[ -f "$HOME/.gitconfig.local" ]]; then
+    ok "Git identity already set (~/.gitconfig.local exists)"
+    return
+  fi
+
+  echo ""
+  echo -e "  ${BOLD}Set up git identity?${RESET}"
+  echo -e "  ~/.gitconfig.local stores your name and email for git commits."
+  echo -e "  This file is ${BOLD}not${RESET} tracked in the repo — it stays on this machine only."
+  printf "  Create it now? [y/N] "
+  read -r answer
+  if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+    warn "Skipped — create ~/.gitconfig.local manually before committing:"
+    warn "  [user]"
+    warn "    name  = Your Name"
+    warn "    email = you@example.com"
+    return
+  fi
+
+  echo ""
+  printf "  Your full name (appears in git commit history): "
+  read -r git_name
+  printf "  Your email (appears in git commit history):     "
+  read -r git_email
+
+  cat > "$HOME/.gitconfig.local" <<EOF
+[user]
+	name  = ${git_name}
+	email = ${git_email}
+EOF
+
+  ok "Git identity saved to ~/.gitconfig.local"
+}
+
 # ── Terminfo ──────────────────────────────────────────────────────────────────
 
 install_terminfo() {
@@ -146,6 +183,7 @@ case "$OS" in
 esac
 
 create_symlinks
+setup_git_identity
 install_terminfo
 set_default_shell
 
