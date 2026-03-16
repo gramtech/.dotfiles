@@ -174,7 +174,13 @@ set_default_shell() {
   if ! grep -qF "$zsh_path" /etc/shells; then
     echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
   fi
-  chsh -s "$zsh_path"
+  # usermod is non-interactive and doesn't require the user's password;
+  # chsh (macOS / fallback) prompts for it which breaks scripted installs
+  if command -v usermod >/dev/null 2>&1; then
+    sudo usermod -s "$zsh_path" "$USER"
+  else
+    chsh -s "$zsh_path"
+  fi
   ok "Default shell set to $zsh_path — log out and back in for it to take effect"
 }
 
