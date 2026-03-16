@@ -121,6 +121,15 @@ if command -v terraform >/dev/null 2>&1; then
   complete -o nospace -C terraform terraform
 fi
 
+# ---------- prompt ----------
+autoload -Uz vcs_info
+precmd_functions+=( vcs_info )
+zstyle ':vcs_info:*'     enable git
+zstyle ':vcs_info:git:*' formats ' (%b)'
+setopt PROMPT_SUBST
+PROMPT='%F{green}%n@%m%f %F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f
+%(?.%F{green}.%F{red})❯%f '
+
 # ---------- key bindings ----------
 # bindkey -e must come first — it resets the keymap to emacs defaults,
 # so all custom bindings must be registered after it.
