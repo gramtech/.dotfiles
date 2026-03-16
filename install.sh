@@ -21,8 +21,8 @@ install_macos() {
   if ! command -v brew >/dev/null 2>&1; then
     info "Installing Homebrew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-    [[ -x /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
+    if [[ -x /opt/homebrew/bin/brew ]]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
+    if [[ -x /usr/local/bin/brew ]];    then eval "$(/usr/local/bin/brew shellenv)"; fi
   else
     ok "Homebrew already installed"
   fi
@@ -53,8 +53,8 @@ install_linux() {
 _BACKUP_DIR=""
 backup_if_needed() {
   local target="$1"
-  [[ -e "$target" || -L "$target" ]] || return 0  # nothing there — nothing to do
-  [[ -L "$target" ]] && return 0                  # already a symlink — ln -sf handles it
+  if [[ ! -e "$target" && ! -L "$target" ]]; then return 0; fi  # nothing there — nothing to do
+  if [[ -L "$target" ]]; then return 0; fi                      # already a symlink — ln -sf handles it
   if [[ -z "$_BACKUP_DIR" ]]; then
     _BACKUP_DIR="$HOME/.dotfiles_backup/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$_BACKUP_DIR"
@@ -107,7 +107,7 @@ create_symlinks() {
     ok "SSH config (requires 1Password SSH agent)"
   fi
 
-  [[ -n "$_BACKUP_DIR" ]] && info "Pre-existing files backed up to $_BACKUP_DIR"
+  if [[ -n "$_BACKUP_DIR" ]]; then info "Pre-existing files backed up to $_BACKUP_DIR"; fi
 }
 
 # ── Git identity ──────────────────────────────────────────────────────────────
