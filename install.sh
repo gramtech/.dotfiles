@@ -159,7 +159,14 @@ install_terminfo() {
 
 set_default_shell() {
   local zsh_path; zsh_path="$(command -v zsh)"
-  if [[ "$SHELL" == "$zsh_path" ]]; then
+  # Read the actual login shell from passwd — $SHELL can be stale in the current session
+  local login_shell
+  if command -v getent >/dev/null 2>&1; then
+    login_shell="$(getent passwd "$USER" | cut -d: -f7)"
+  else
+    login_shell="$(grep "^${USER}:" /etc/passwd | cut -d: -f7)"
+  fi
+  if [[ "$login_shell" == "$zsh_path" ]]; then
     ok "Default shell is already zsh"
     return
   fi
@@ -168,7 +175,7 @@ set_default_shell() {
     echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
   fi
   chsh -s "$zsh_path"
-  ok "Default shell set to $zsh_path (takes effect on next login)"
+  ok "Default shell set to $zsh_path — log out and back in for it to take effect"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
