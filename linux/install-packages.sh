@@ -138,12 +138,16 @@ install_zsh_plugins() {
 # ── Docker ─────────────────────────────────────────────────────────────────
 
 install_docker_apt() {
+  if command -v docker >/dev/null 2>&1; then
+    ok "Docker already installed ($(docker --version))"
+    return
+  fi
   info "Adding Docker repository (apt)"
 
   # GPG key
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-    | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
   sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
   # Repository
@@ -169,6 +173,10 @@ install_docker_apt() {
 }
 
 install_docker_dnf() {
+  if command -v docker >/dev/null 2>&1; then
+    ok "Docker already installed ($(docker --version))"
+    return
+  fi
   info "Adding Docker repository (dnf)"
   sudo dnf install -y dnf-plugins-core
   sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
@@ -191,6 +199,10 @@ install_docker_dnf() {
 # ── Helm ───────────────────────────────────────────────────────────────────
 
 install_helm() {
+  if command -v helm >/dev/null 2>&1; then
+    ok "Helm already installed ($(helm version --short))"
+    return
+  fi
   info "Installing Helm"
   curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
   ok "Helm $(helm version --short) installed"
@@ -199,10 +211,14 @@ install_helm() {
 # ── Terraform ──────────────────────────────────────────────────────────────
 
 install_terraform_apt() {
+  if command -v terraform >/dev/null 2>&1; then
+    ok "Terraform already installed ($(terraform version -json | grep '"terraform_version"' | cut -d '"' -f 4))"
+    return
+  fi
   info "Adding HashiCorp repository (apt)"
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://apt.releases.hashicorp.com/gpg \
-    | sudo gpg --dearmor -o /etc/apt/keyrings/hashicorp.gpg
+    | sudo gpg --yes --dearmor -o /etc/apt/keyrings/hashicorp.gpg
   sudo chmod a+r /etc/apt/keyrings/hashicorp.gpg
   echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/hashicorp.gpg] \
@@ -215,6 +231,10 @@ install_terraform_apt() {
 }
 
 install_terraform_dnf() {
+  if command -v terraform >/dev/null 2>&1; then
+    ok "Terraform already installed ($(terraform version -json | grep '"terraform_version"' | cut -d '"' -f 4))"
+    return
+  fi
   info "Adding HashiCorp repository (dnf)"
   sudo dnf install -y dnf-plugins-core
   sudo dnf config-manager --add-repo https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
