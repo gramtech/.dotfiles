@@ -140,60 +140,64 @@ install_zsh_plugins() {
 install_docker_apt() {
   if command -v docker >/dev/null 2>&1; then
     ok "Docker already installed ($(docker --version))"
-    return
+  else
+    info "Adding Docker repository (apt)"
+
+    # GPG key
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+      | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+    # Repository
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+      | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+    sudo apt-get update -qq
+    sudo apt-get install -y \
+      docker-ce \
+      docker-ce-cli \
+      containerd.io \
+      docker-buildx-plugin \
+      docker-compose-plugin
+
+    ok "Docker $(docker --version) installed"
   fi
-  info "Adding Docker repository (apt)"
-
-  # GPG key
-  sudo install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-    | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
-  sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-  # Repository
-  echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-    https://download.docker.com/linux/ubuntu \
-    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-
-  sudo apt-get update -qq
-  sudo apt-get install -y \
-    docker-ce \
-    docker-ce-cli \
-    containerd.io \
-    docker-buildx-plugin \
-    docker-compose-plugin
 
   # Allow running docker without sudo
-  sudo usermod -aG docker "$USER"
-
-  ok "Docker $(docker --version) installed"
-  warn "Log out and back in for docker group membership to take effect"
+  if ! groups "$USER" | grep -qw docker; then
+    sudo usermod -aG docker "$USER"
+    warn "Log out and back in for docker group membership to take effect"
+  fi
 }
 
 install_docker_dnf() {
   if command -v docker >/dev/null 2>&1; then
     ok "Docker already installed ($(docker --version))"
-    return
-  fi
-  info "Adding Docker repository (dnf)"
-  sudo dnf install -y dnf-plugins-core
-  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-  sudo dnf install -y \
-    docker-ce \
-    docker-ce-cli \
-    containerd.io \
-    docker-buildx-plugin \
-    docker-compose-plugin
+  else
+    info "Adding Docker repository (dnf)"
+    sudo dnf install -y dnf-plugins-core
+    sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+    sudo dnf install -y \
+      docker-ce \
+      docker-ce-cli \
+      containerd.io \
+      docker-buildx-plugin \
+      docker-compose-plugin
 
-  sudo systemctl enable --now docker
+    sudo systemctl enable --now docker
+
+    ok "Docker $(docker --version) installed"
+  fi
 
   # Allow running docker without sudo
-  sudo usermod -aG docker "$USER"
-
-  ok "Docker $(docker --version) installed"
-  warn "Log out and back in for docker group membership to take effect"
+  if ! groups "$USER" | grep -qw docker; then
+    sudo usermod -aG docker "$USER"
+    warn "Log out and back in for docker group membership to take effect"
+  fi
 }
 
 # ── Helm ───────────────────────────────────────────────────────────────────
