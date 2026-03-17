@@ -47,7 +47,7 @@ install_core_apt() {
   info "Installing core packages (apt)"
   sudo apt-get update -qq
   sudo apt-get install -y \
-    zsh tmux git curl wget \
+    zsh tmux git curl wget unzip \
     fzf ripgrep htop gnupg \
     grc \
     zsh-autosuggestions zsh-syntax-highlighting \
@@ -73,7 +73,7 @@ install_core_apt() {
 install_core_dnf() {
   info "Installing core packages (dnf)"
   sudo dnf install -y \
-    zsh tmux git curl wget \
+    zsh tmux git curl wget unzip \
     fzf ripgrep htop gnupg2 \
     bat eza grc \
     zsh-autosuggestions zsh-syntax-highlighting \
