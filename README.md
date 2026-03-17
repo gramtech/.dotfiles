@@ -55,8 +55,15 @@ A portable, modular development environment for macOS and Linux. One install scr
 
 Clone the repo and run the install script:
 
+**SSH:**
 ```sh
 git clone git@github.com:gramtech/.dotfiles.git ~/.dotfiles
+~/.dotfiles/install.sh
+```
+
+**HTTPS:**
+```sh
+git clone https://github.com/gramtech/.dotfiles.git ~/.dotfiles
 ~/.dotfiles/install.sh
 ```
 
