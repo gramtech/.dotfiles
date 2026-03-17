@@ -119,16 +119,12 @@ require("lazy").setup({
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "williamboman/mason.nvim" },
-    opts = {
-      ensure_installed = {
-        "lua_ls",
-        "bashls",
-        "yamlls",
-        "jsonls",
-        "terraformls",
-        "dockerls",
-      },
-    },
+    opts = function()
+      local servers = { "lua_ls", "bashls", "yamlls", "jsonls" }
+      if vim.fn.executable("terraform") == 1 then table.insert(servers, "terraformls") end
+      if vim.fn.executable("docker")    == 1 then table.insert(servers, "dockerls")    end
+      return { ensure_installed = servers }
+    end,
   },
 
   --------------------------------------------------
@@ -172,14 +168,9 @@ require("lazy").setup({
         map("n", "<leader>ca", vim.lsp.buf.code_action)
       end
 
-      local servers = {
-        "lua_ls",
-        "bashls",
-        "yamlls",
-        "jsonls",
-        "terraformls",
-        "dockerls",
-      }
+      local servers = { "lua_ls", "bashls", "yamlls", "jsonls" }
+      if vim.fn.executable("terraform") == 1 then table.insert(servers, "terraformls") end
+      if vim.fn.executable("docker")    == 1 then table.insert(servers, "dockerls")    end
 
       for _, server in ipairs(servers) do
         vim.lsp.config(server, {
