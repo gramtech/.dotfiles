@@ -17,7 +17,9 @@ fi
 [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
 
 # --- asdf version manager ---
-[[ -f "$(brew --prefix asdf)/libexec/asdf.sh" ]] && source "$(brew --prefix asdf)/libexec/asdf.sh"
+_asdf_sh="$(brew --prefix asdf 2>/dev/null)/libexec/asdf.sh"
+[[ -f "$_asdf_sh" ]] && source "$_asdf_sh"
+unset _asdf_sh
 
 # --- zsh UX (mac) ---
 if command -v brew >/dev/null 2>&1; then

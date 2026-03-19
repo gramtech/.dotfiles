@@ -24,7 +24,7 @@ alias h='history'
 alias p='pwd'
 alias mkdir='mkdir -pv'                                         # create intermediate dirs automatically
 alias grep='grep --color=auto'
-alias path='echo -e ${PATH//:/\\n}'                            # print each PATH entry on its own line
+alias path='echo -e "${PATH//:/\\n}"'                          # print each PATH entry on its own line
 alias reload='exec zsh'                                        # reload shell in place
 
 

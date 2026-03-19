@@ -23,7 +23,7 @@ warn() { echo -e "  ${YELLOW}!${RESET} $*"; }
 
 prompt() {
   local question="$1"
-  echo -e "\n  ${BOLD}${question}${RESET} [y/N] \c"
+  printf "\n  %b [y/N] " "${BOLD}${question}${RESET}"
   read -r answer
   [[ "$answer" =~ ^[Yy]$ ]]
 }
@@ -208,7 +208,12 @@ install_helm() {
     return
   fi
   info "Installing Helm"
-  curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  local tmp
+  tmp="$(mktemp)"
+  curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 -o "$tmp"
+  chmod +x "$tmp"
+  "$tmp"
+  rm -f "$tmp"
   ok "Helm $(helm version --short) installed"
 }
 

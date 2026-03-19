@@ -22,6 +22,7 @@ A portable, modular development environment for macOS and Linux. One install scr
 | Package manager | Homebrew (macOS) / apt or dnf (Linux) |
 | SSH agent | 1Password (macOS) |
 | Infrastructure | Helm, Terraform |
+| GitHub CLI | gh |
 | Fuzzy finder | fzf + ripgrep |
 | AI shell helpers | Claude (`ccmd`, `ccmd_in`) |
 
@@ -82,8 +83,9 @@ Optional components
 ────────────────────────
   1. Docker CE + Compose + BuildX  (Docker's official repo)
   2. asdf version manager           (git clone, manages Node/Python/Go/etc.)
-  3. Helm                           (official get-helm-3 script)
-  4. Terraform                      (HashiCorp's official repo)
+  3. GitHub CLI                     (GitHub's official repo)
+  4. Helm                           (official get-helm-3 script)
+  5. Terraform                      (HashiCorp's official repo)
 
   a  Install all
   i  Choose individually
@@ -93,9 +95,11 @@ Optional components
 ### macOS — additional steps
 
 1. Install [1Password](https://1password.com/) and enable the SSH agent under **Settings → Developer**
-2. Install [iTerm2](https://iterm2.com/), then install shell integration:
+2. Install [iTerm2](https://iterm2.com/), then install shell integration (review the script before running):
    ```sh
-   curl -L https://iterm2.com/shell_integration/install_shell_integration.sh | bash
+   curl -fsSL https://iterm2.com/shell_integration/install_shell_integration.sh -o /tmp/iterm2_install.sh
+   # Review /tmp/iterm2_install.sh, then:
+   bash /tmp/iterm2_install.sh
    ```
 
 ### Linux — notes

@@ -33,10 +33,12 @@ install_macos() {
 
   # Install fzf shell key bindings (writes ~/.fzf.zsh, sourced by zshrc.darwin)
   local fzf_install="$(brew --prefix)/opt/fzf/install"
-  if [[ -f "$fzf_install" ]]; then
+  if [[ -f "$fzf_install" ]] && [[ ! -f "$HOME/.fzf.zsh" ]]; then
     info "Installing fzf key bindings"
     "$fzf_install" --key-bindings --completion --no-update-rc --no-bash --no-fish
     ok "fzf key bindings installed"
+  elif [[ -f "$HOME/.fzf.zsh" ]]; then
+    ok "fzf key bindings already installed"
   fi
 }
 
@@ -57,7 +59,7 @@ backup_if_needed() {
   if [[ -L "$target" ]]; then return 0; fi                      # already a symlink — ln -sf handles it
   if [[ -z "$_BACKUP_DIR" ]]; then
     _BACKUP_DIR="$HOME/.dotfiles_backup/$(date +%Y%m%d_%H%M%S)"
-    mkdir -p "$_BACKUP_DIR"
+    mkdir -p -m 700 "$_BACKUP_DIR"
   fi
   mv "$target" "$_BACKUP_DIR/"
   warn "Backed up $(basename "$target") → $_BACKUP_DIR/"
@@ -138,11 +140,9 @@ setup_git_identity() {
   printf "  Your email (appears in git commit history):     "
   read -r git_email
 
-  cat > "$HOME/.gitconfig.local" <<EOF
-[user]
-	name  = ${git_name}
-	email = ${git_email}
-EOF
+  printf '[user]\n\tname  = %s\n\temail = %s\n' "$git_name" "$git_email" \
+    > "$HOME/.gitconfig.local" \
+    || { warn "Failed to write ~/.gitconfig.local"; return 1; }
 
   ok "Git identity saved to ~/.gitconfig.local"
 }
