@@ -246,6 +246,37 @@ install_terraform_dnf() {
   ok "Terraform $(terraform version -json | grep '"terraform_version"' | cut -d '"' -f 4) installed"
 }
 
+# ── GitHub CLI ─────────────────────────────────────────────────────────────
+
+install_gh_apt() {
+  if command -v gh >/dev/null 2>&1; then
+    ok "gh already installed ($(gh --version | head -1))"
+    return
+  fi
+  info "Adding GitHub CLI repository (apt)"
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | sudo gpg --yes --dearmor -o /etc/apt/keyrings/githubcli.gpg
+  sudo chmod a+r /etc/apt/keyrings/githubcli.gpg
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli.gpg] \
+    https://cli.github.com/packages stable main" \
+    | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+  sudo apt-get update -qq
+  sudo apt-get install -y gh
+  ok "gh $(gh --version | head -1) installed"
+}
+
+install_gh_dnf() {
+  if command -v gh >/dev/null 2>&1; then
+    ok "gh already installed ($(gh --version | head -1))"
+    return
+  fi
+  info "Installing GitHub CLI (dnf)"
+  sudo dnf install -y gh
+  ok "gh $(gh --version | head -1) installed"
+}
+
 # ── asdf version manager ───────────────────────────────────────────────────
 
 install_asdf() {
@@ -296,6 +327,12 @@ install_optional() {
       esac
       ;;
     asdf)    install_asdf ;;
+    gh)
+      case "$PKG_MANAGER" in
+        apt) install_gh_apt ;;
+        dnf) install_gh_dnf ;;
+      esac
+      ;;
     helm)    install_helm ;;
     terraform)
       case "$PKG_MANAGER" in
@@ -306,10 +343,11 @@ install_optional() {
   esac
 }
 
-OPTIONAL_NAMES=(docker asdf helm terraform)
+OPTIONAL_NAMES=(docker asdf gh helm terraform)
 OPTIONAL_DESCS=(
   "Docker CE + Compose + BuildX  (Docker's official repo)"
   "asdf version manager           (git clone, manages Node/Python/Go/etc.)"
+  "GitHub CLI                     (GitHub's official repo)"
   "Helm                           (official get-helm-3 script)"
   "Terraform                      (HashiCorp's official repo)"
 )
