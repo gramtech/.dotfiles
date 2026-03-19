@@ -1,6 +1,6 @@
 # Ensure brew is discoverable in interactive shells
 [[ -x /opt/homebrew/bin/brew ]] && export PATH="/opt/homebrew/bin:$PATH"
-[[ -x /usr/local/bin/brew ]] && export PATH="/usr/local/bin:$PATH"
+[[ -x /usr/local/bin/brew ]] && export PATH="/usr/local/sbin:/usr/local/bin:$PATH"
 
 # iTerm2 shell integration (Mac)
 if [[ -r "$HOME/.iterm2_shell_integration.zsh" ]]; then
