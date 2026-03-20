@@ -147,6 +147,36 @@ setup_git_identity() {
   ok "Git identity saved to ~/.gitconfig.local"
 }
 
+# ── iTerm2 profile ────────────────────────────────────────────────────────────
+
+setup_iterm2_profile() {
+  local src="$DOTFILES/iterm2/dotfiles.json"
+  local dest_dir="$HOME/Library/Application Support/iTerm2/DynamicProfiles"
+  local dest="$dest_dir/dotfiles.json"
+
+  if [[ -L "$dest" ]]; then
+    ok "iTerm2 profile already linked"
+    return
+  fi
+
+  echo ""
+  echo -e "  ${BOLD}Install iTerm2 profile?${RESET}"
+  echo -e "  This adds a new profile called ${BOLD}Dotfiles${RESET} to iTerm2."
+  echo -e "  It sets the font to JetBrainsMono Nerd Font."
+  echo -e "  ${BOLD}It will not modify or delete any existing profiles.${RESET}"
+  echo -e "  After install, select it in iTerm2: Preferences → Profiles → Dotfiles → Other Actions → Set as Default"
+  printf "  Install it? [y/N] "
+  read -r answer
+  if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+    ok "Skipped iTerm2 profile"
+    return
+  fi
+
+  mkdir -p "$dest_dir"
+  ln -sf "$src" "$dest"
+  ok "iTerm2 profile linked — restart iTerm2, then set Dotfiles as default in Preferences → Profiles"
+}
+
 # ── Terminfo ──────────────────────────────────────────────────────────────────
 
 install_terminfo() {
@@ -199,6 +229,7 @@ create_symlinks
 setup_git_identity
 install_terminfo
 set_default_shell
+if [[ "$OS" == "Darwin" ]]; then setup_iterm2_profile; fi
 
 echo -e "\n${GREEN}${BOLD}Done.${RESET}"
 
@@ -206,7 +237,6 @@ if [[ "$OS" == "Darwin" ]]; then
   echo ""
   echo "Remaining macOS steps:"
   echo "  • Open 1Password and enable the SSH agent under Settings → Developer"
-  echo "  • Set font in iTerm2: Preferences → Profiles → Text → Font → JetBrainsMono Nerd Font"
   echo "  • Install iTerm2 shell integration:"
   echo "      curl -fsSL https://iterm2.com/shell_integration/install_shell_integration.sh -o /tmp/iterm2_shell_integration.sh"
   echo "      # review the script, then: bash /tmp/iterm2_shell_integration.sh"

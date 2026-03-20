@@ -1,0 +1,31 @@
+{
+  "Profiles": [
+    {
+      "Name": "Dotfiles",
+      "Guid": "2653CC27-8D56-4939-9EE6-26D5BB1469DD",
+
+      "Normal Font": "JetBrainsMonoNFM-Regular 12",
+      "Use Non-ASCII Font": false,
+      "ASCII Anti Aliased": true,
+      "Non-ASCII Anti Aliased": true,
+      "Use Bold Font": true,
+      "Use Italic Font": true,
+      "Use Bright Bold": true,
+
+      "Terminal Type": "xterm-256color",
+      "Character Encoding": 4,
+      "Mouse Reporting": true,
+
+      "Unlimited Scrollback": true,
+
+      "Option Key Sends": 2,
+      "Left Option Key Changeable": true,
+
+      "Visual Bell": true,
+      "Flashing Bell": false,
+      "Silence Bell": false,
+
+      "Close Sessions On End": true
+    }
+  ]
+}
