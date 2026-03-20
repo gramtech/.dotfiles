@@ -89,6 +89,9 @@ cask "firefox"
 cask "signal"
 cask "discord"
 
+# Fonts
+cask "font-jetbrains-mono-nerd-font"
+
 # Development
 cask "docker-desktop"
 cask "postman"

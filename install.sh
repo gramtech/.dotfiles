@@ -206,6 +206,7 @@ if [[ "$OS" == "Darwin" ]]; then
   echo ""
   echo "Remaining macOS steps:"
   echo "  • Open 1Password and enable the SSH agent under Settings → Developer"
+  echo "  • Set font in iTerm2: Preferences → Profiles → Text → Font → JetBrainsMono Nerd Font"
   echo "  • Install iTerm2 shell integration:"
   echo "      curl -fsSL https://iterm2.com/shell_integration/install_shell_integration.sh -o /tmp/iterm2_shell_integration.sh"
   echo "      # review the script, then: bash /tmp/iterm2_shell_integration.sh"
