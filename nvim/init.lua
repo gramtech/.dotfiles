@@ -40,6 +40,19 @@ if not vim.uv.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Servers to install/enable — built once, shared by mason-lspconfig and lspconfig
+local function lsp_servers()
+  local s = { "lua_ls" }
+  if vim.fn.executable("npm")       == 1 then
+    table.insert(s, "bashls")
+    table.insert(s, "yamlls")
+    table.insert(s, "jsonls")
+  end
+  if vim.fn.executable("terraform") == 1 then table.insert(s, "terraformls") end
+  if vim.fn.executable("docker")    == 1 then table.insert(s, "dockerls")    end
+  return s
+end
+
 --------------------------------------------------
 -- Plugins
 --------------------------------------------------
@@ -86,6 +99,7 @@ require("lazy").setup({
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
+    dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" },
     config = function()
       local ok, configs = pcall(require, "nvim-treesitter.configs")
       if ok then
@@ -120,15 +134,7 @@ require("lazy").setup({
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "williamboman/mason.nvim" },
     opts = function()
-      local servers = { "lua_ls" }
-      if vim.fn.executable("npm")       == 1 then
-        table.insert(servers, "bashls")
-        table.insert(servers, "yamlls")
-        table.insert(servers, "jsonls")
-      end
-      if vim.fn.executable("terraform") == 1 then table.insert(servers, "terraformls") end
-      if vim.fn.executable("docker")    == 1 then table.insert(servers, "dockerls")    end
-      return { ensure_installed = servers }
+      return { ensure_installed = lsp_servers() }
     end,
   },
 
@@ -173,16 +179,7 @@ require("lazy").setup({
         map("n", "<leader>ca", vim.lsp.buf.code_action)
       end
 
-      local servers = { "lua_ls" }
-      if vim.fn.executable("npm")       == 1 then
-        table.insert(servers, "bashls")
-        table.insert(servers, "yamlls")
-        table.insert(servers, "jsonls")
-      end
-      if vim.fn.executable("terraform") == 1 then table.insert(servers, "terraformls") end
-      if vim.fn.executable("docker")    == 1 then table.insert(servers, "dockerls")    end
-
-      for _, server in ipairs(servers) do
+      for _, server in ipairs(lsp_servers()) do
         vim.lsp.config(server, {
           capabilities = capabilities,
           on_attach = on_attach,
