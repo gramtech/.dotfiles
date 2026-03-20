@@ -109,6 +109,35 @@ install_neovim_dnf() {
   ok "Neovim $(nvim --version | head -1) installed"
 }
 
+# ── Fonts ──────────────────────────────────────────────────────────────────
+
+install_fonts() {
+  local font_dir="$HOME/.local/share/fonts/JetBrainsMonoNerdFont"
+  if [[ -d "$font_dir" ]]; then
+    ok "JetBrains Mono Nerd Font already installed"
+    return
+  fi
+  info "Installing JetBrains Mono Nerd Font"
+  local url
+  url=$(curl -fsSL https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest \
+    | grep '"browser_download_url"' \
+    | grep 'JetBrainsMono\.tar\.xz"' \
+    | cut -d '"' -f 4)
+  if [[ -z "$url" ]]; then
+    warn "Could not determine JetBrains Mono Nerd Font download URL; skipping"
+    return 1
+  fi
+  local tmp
+  tmp="$(mktemp -d)"
+  curl -fsSL "$url" -o "$tmp/JetBrainsMono.tar.xz"
+  mkdir -p "$font_dir"
+  tar -xf "$tmp/JetBrainsMono.tar.xz" -C "$font_dir"
+  rm -rf "$tmp"
+  fc-cache -f "$font_dir"
+  ok "JetBrains Mono Nerd Font installed"
+  warn "Set it in your terminal emulator: JetBrainsMono Nerd Font, Regular"
+}
+
 # ── zsh plugins (user-local fallback) ─────────────────────────────────────
 # Clone plugins to ~/.zsh/ for distros that don't package them.
 # zshrc.linux sources system paths first and falls back to these.
@@ -319,6 +348,7 @@ case "$PKG_MANAGER" in
 esac
 
 install_zsh_plugins
+install_fonts
 
 # ── Optional components ─────────────────────────────────────────────────────
 
