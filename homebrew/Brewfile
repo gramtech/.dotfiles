@@ -25,6 +25,7 @@ brew "curl"
 brew "wget"
 brew "gnupg"
 brew "htop"
+brew "nvtop"
 brew "cmake"
 
 
