@@ -17,3 +17,6 @@ nvim/lazy-lock.json
 id_rsa
 id_ed25519
 known_hosts
+
+# asdf local version file
+.tool-versions
