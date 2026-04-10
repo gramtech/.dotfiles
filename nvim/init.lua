@@ -25,6 +25,14 @@ vim.keymap.set("n", "<leader>q", "<cmd>q<cr>",  { desc = "Quit" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qa<cr>", { desc = "Quit all" })
 
 --------------------------------------------------
+-- AI startup default — written to ~/.zshrc.local by install.sh.
+-- "copilot"  → Copilot auto-triggers, codecompanion defaults to Copilot adapter.
+-- unset/other → Ollama is the default. Toggle at runtime with <leader>am.
+--------------------------------------------------
+local copilot_default = os.getenv("NVIM_AI_DEFAULT") == "copilot"
+local ai_mode = copilot_default and "work" or "home"
+
+--------------------------------------------------
 -- Bootstrap lazy.nvim
 --------------------------------------------------
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -92,6 +100,7 @@ require("lazy").setup({
       local wk = require("which-key")
       wk.add({
         { "<leader>f", group = "format/find" },
+        { "<leader>a", group = "ai" },
       })
     end,
   },
@@ -108,7 +117,7 @@ require("lazy").setup({
           textobjects = {
             select = {
               enable = true,
-              lookahead = true, -- optional: jump forward to textobject
+              lookahead = true,
               keymaps = {
                 ["af"] = "@function.outer",
                 ["if"] = "@function.inner",
@@ -120,6 +129,99 @@ require("lazy").setup({
         })
       end
     end,
+  },
+
+  --------------------------------------------------
+  -- AI: Copilot — native ghost text (VS Code style)
+  -- Activate at work with :Copilot auth
+  --------------------------------------------------
+  {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    event = "InsertEnter",
+    opts = function()
+      return {
+        suggestion = {
+          enabled = true,
+          auto_trigger = copilot_default, -- on at work, off at home
+          keymap = {
+            accept      = false,  -- handled by smart Tab below
+            accept_word = "<M-w>",
+            accept_line = "<M-l>",
+            next        = "<M-]>",
+            prev        = "<M-[>",
+            dismiss     = "<C-]>",
+          },
+        },
+        panel = { enabled = false },
+      }
+    end,
+  },
+
+  --------------------------------------------------
+  -- AI: Ollama ghost text (FIM model)
+  -- Requires: ollama serve + a FIM model pulled
+  -- e.g. ollama pull qwen2.5-coder:7b
+  --------------------------------------------------
+  {
+    "huggingface/llm.nvim",
+    opts = {
+      backend = "ollama",
+      url     = "http://localhost:11434",
+      model   = "qwen2.5-coder:7b", -- swap for whichever FIM model you have pulled
+      enable_suggestions_on_startup = false, -- toggle with <leader>ag
+    },
+  },
+
+  --------------------------------------------------
+  -- AI: Claude sidebar via Claude Code CLI
+  -- No API key needed — uses existing `claude` login
+  --------------------------------------------------
+  {
+    "coder/claudecode.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {},
+    keys = {
+      { "<leader>at", "<cmd>ClaudeCodeToggle<cr>", desc = "Toggle Claude sidebar" },
+      { "<leader>as", "<cmd>ClaudeCode<cr>",        desc = "Claude Code" },
+    },
+  },
+
+  --------------------------------------------------
+  -- AI: Chat + inline assist (Copilot at work, Ollama at home)
+  --------------------------------------------------
+  {
+    "olimorris/codecompanion.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("codecompanion").setup({
+        adapters = {
+          copilot = function()
+            return require("codecompanion.adapters").extend("copilot", {})
+          end,
+          ollama = function()
+            return require("codecompanion.adapters").extend("ollama", {
+              schema = { model = { default = "llama3.2" } },
+            })
+          end,
+          -- Uncomment + set OPENAI_API_KEY to enable ChatGPT/Codex via API:
+          -- openai = function()
+          --   return require("codecompanion.adapters").extend("openai", {
+          --     schema = { model = { default = "gpt-4o" } },
+          --   })
+          -- end,
+        },
+        strategies = {
+          chat   = { adapter = copilot_default and "copilot" or "ollama" },
+          inline = { adapter = copilot_default and "copilot" or "ollama" },
+        },
+      })
+    end,
+    keys = {
+      { "<leader>ac", "<cmd>CodeCompanionChat<cr>",    mode = { "n", "v" }, desc = "AI chat" },
+      { "<leader>aa", "<cmd>CodeCompanionActions<cr>",  mode = { "n", "v" }, desc = "AI actions" },
+      { "<leader>ai", "<cmd>CodeCompanion<cr>",         mode = { "n", "v" }, desc = "AI inline" },
+    },
   },
 
   --------------------------------------------------
@@ -198,9 +300,9 @@ require("lazy").setup({
           end,
         },
         mapping = cmp.mapping.preset.insert({
-          ["<CR>"] = cmp.mapping.confirm({ select = true }),
-          ["<Tab>"] = cmp.mapping.select_next_item(),
+          ["<CR>"]    = cmp.mapping.confirm({ select = true }),
           ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+          -- <Tab> is handled below (smart Tab)
         }),
         sources = {
           { name = "nvim_lsp" },
@@ -227,3 +329,49 @@ require("lazy").setup({
   },
 
 })
+
+--------------------------------------------------
+-- AI: Work / home mode toggle
+-- Work:  Copilot ghost text on, Ollama off
+-- Home:  Copilot ghost text off, Ollama available via <leader>ag
+--------------------------------------------------
+vim.keymap.set("n", "<leader>am", function()
+  if ai_mode == "work" then
+    require("copilot.suggestion").dismiss()
+    vim.g.copilot_enabled = false
+    ai_mode = "home"
+    vim.notify("AI mode: Home (Claude + Ollama)", vim.log.levels.INFO)
+  else
+    if _llm_enabled then vim.cmd("LLMToggleAutoSuggest"); _llm_enabled = false end
+    vim.g.copilot_enabled = true
+    ai_mode = "work"
+    vim.notify("AI mode: Work (Copilot)", vim.log.levels.INFO)
+  end
+end, { desc = "Toggle AI mode: Work / Home" })
+
+-- Toggle Ollama ghost text (home mode)
+local _llm_enabled = false
+vim.keymap.set("n", "<leader>ag", function()
+  vim.cmd("LLMToggleAutoSuggest")
+  _llm_enabled = not _llm_enabled
+  vim.notify("Ollama ghost text: " .. (_llm_enabled and "ON" or "OFF"), vim.log.levels.INFO)
+end, { desc = "Toggle Ollama ghost text" })
+
+--------------------------------------------------
+-- Smart Tab
+-- cmp open  → next completion item
+-- ghost text visible → accept suggestion
+-- otherwise → literal tab
+--------------------------------------------------
+vim.keymap.set("i", "<Tab>", function()
+  local cmp = require("cmp")
+  if cmp.visible() then
+    cmp.select_next_item()
+  elseif require("copilot.suggestion").is_visible() then
+    require("copilot.suggestion").accept()
+  else
+    vim.api.nvim_feedkeys(
+      vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", false
+    )
+  end
+end, { desc = "Smart Tab" })

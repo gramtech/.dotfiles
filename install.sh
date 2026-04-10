@@ -10,9 +10,10 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 RESET='\033[0m'
 
-info() { echo -e "\n${BLUE}==>${RESET} ${BOLD}$*${RESET}"; }
-ok()   { echo -e "  ${GREEN}✓${RESET} $*"; }
-warn() { echo -e "  ${YELLOW}!${RESET} $*"; }
+info()   { echo -e "\n${BLUE}==>${RESET} ${BOLD}$*${RESET}"; }
+ok()     { echo -e "  ${GREEN}✓${RESET} $*"; }
+warn()   { echo -e "  ${YELLOW}!${RESET} $*"; }
+prompt() { printf "\n  ${BOLD}%s${RESET} [y/N] " "$1"; read -r _a; [[ "$_a" =~ ^[Yy]$ ]]; }
 
 # ── macOS ─────────────────────────────────────────────────────────────────────
 
@@ -112,6 +113,21 @@ create_symlinks() {
   if [[ -n "$_BACKUP_DIR" ]]; then info "Pre-existing files backed up to $_BACKUP_DIR"; fi
 }
 
+# ── asdf tool versions ────────────────────────────────────────────────────────
+
+setup_asdf_tools() {
+  [[ -f "$DOTFILES/.tool-versions" ]] || return 0
+  command -v asdf >/dev/null 2>&1 || { warn "asdf not found, skipping tool setup"; return 0; }
+
+  info "Setting up asdf tool versions"
+  while IFS=' ' read -r name version; do
+    [[ -z "$name" || "$name" == \#* ]] && continue
+    asdf install "$name" "$version" 2>/dev/null || true
+    asdf set -u "$name" "$version"
+    ok "$name $version set as global"
+  done < "$DOTFILES/.tool-versions"
+}
+
 # ── Git identity ──────────────────────────────────────────────────────────────
 
 setup_git_identity() {
@@ -145,6 +161,125 @@ setup_git_identity() {
     || { warn "Failed to write ~/.gitconfig.local"; return 1; }
 
   ok "Git identity saved to ~/.gitconfig.local"
+}
+
+# ── Neovim AI ─────────────────────────────────────────────────────────────────
+
+install_ollama() {
+  if command -v ollama >/dev/null 2>&1; then
+    ok "Ollama already installed"
+    return
+  fi
+  info "Installing Ollama"
+  if [[ "$OS" == "Darwin" ]]; then
+    brew install ollama
+  else
+    curl -fsSL https://ollama.com/install.sh | sh
+  fi
+  ok "Ollama installed"
+}
+
+_nvim_ai_default_set() {
+  local value="$1"   # "copilot" or remove
+  local file="$HOME/.zshrc.local"
+  if [[ "$value" == "remove" ]]; then
+    [[ -f "$file" ]] || return 0
+    if [[ "$OS" == "Darwin" ]]; then
+      sed -i '' '/^export NVIM_AI_DEFAULT=/d' "$file"
+    else
+      sed -i '/^export NVIM_AI_DEFAULT=/d' "$file"
+    fi
+  else
+    if [[ -f "$file" ]] && grep -q "NVIM_AI_DEFAULT" "$file"; then
+      if [[ "$OS" == "Darwin" ]]; then
+        sed -i '' "s/^export NVIM_AI_DEFAULT=.*/export NVIM_AI_DEFAULT=${value}/" "$file"
+      else
+        sed -i "s/^export NVIM_AI_DEFAULT=.*/export NVIM_AI_DEFAULT=${value}/" "$file"
+      fi
+    else
+      echo "export NVIM_AI_DEFAULT=${value}" >> "$file"
+    fi
+  fi
+}
+
+setup_nvim_ai() {
+  echo ""
+  echo -e "  ${BOLD}Neovim AI plugins${RESET}"
+  echo -e "  The config supports Copilot, Ollama (local), and Claude Code."
+  echo -e "  You can enable any combination — they don't conflict."
+  prompt "Set up AI plugins for Neovim?" || { ok "Skipped Neovim AI setup"; return; }
+
+  local _copilot=false _ollama=false _claude=false
+
+  # ── Copilot ────────────────────────────────────────────────────────────────
+  echo ""
+  echo -e "  ${BOLD}GitHub Copilot${RESET}"
+  echo "  Inline ghost-text completions as you type, with cycling alternatives."
+  echo "  Requires an active GitHub Copilot licence (personal or work)."
+  if prompt "Enable Copilot?"; then
+    _copilot=true
+    warn "After opening Neovim, run:  :Copilot auth"
+    warn "This opens GitHub in your browser to link your licence."
+    ok "Copilot enabled — complete auth inside Neovim"
+  fi
+
+  # ── Ollama ─────────────────────────────────────────────────────────────────
+  echo ""
+  echo -e "  ${BOLD}Ollama — local AI models${RESET}"
+  echo "  Runs models on this machine. Provides both ghost-text completions"
+  echo "  and a chat interface. No internet or API key required."
+  if prompt "Install Ollama?"; then
+    _ollama=true
+    install_ollama
+
+    echo ""
+    echo -e "  ${BOLD}Ghost text model${RESET} — needs a FIM-capable model for inline completions."
+    echo "  Recommended: qwen2.5-coder:7b  (~4 GB)"
+    prompt "Pull qwen2.5-coder:7b now?" && {
+      ollama pull qwen2.5-coder:7b
+      ok "qwen2.5-coder:7b pulled  (enable ghost text in Neovim with <leader>ag)"
+    } || warn "Pull later:  ollama pull qwen2.5-coder:7b"
+
+    echo ""
+    echo -e "  ${BOLD}Chat model${RESET} — for the AI chat interface in Neovim."
+    echo "  Recommended: llama3.2  (~2 GB).  Change in nvim/init.lua to use another."
+    prompt "Pull llama3.2 now?" && {
+      ollama pull llama3.2
+      ok "llama3.2 pulled  (open AI chat in Neovim with <leader>ac)"
+    } || warn "Pull later:  ollama pull llama3.2"
+  fi
+
+  # ── Claude ─────────────────────────────────────────────────────────────────
+  echo ""
+  echo -e "  ${BOLD}Claude Code${RESET}"
+  echo "  Sidebar chat powered by the Claude Code CLI — no API key needed,"
+  echo "  uses your existing Claude Code login."
+  if prompt "Enable Claude integration?"; then
+    _claude=true
+    if command -v claude >/dev/null 2>&1; then
+      ok "claude CLI found — Claude sidebar ready  (<leader>at in Neovim)"
+    else
+      warn "claude CLI not found — install it first, then the integration works automatically."
+      warn "  https://claude.ai/code  or:  npm install -g @anthropic-ai/claude-code"
+    fi
+  fi
+
+  # ── Derive startup default ─────────────────────────────────────────────────
+  # Copilot-only → set Copilot as the auto-trigger default.
+  # Ollama present (with or without Copilot) → Ollama is default; Copilot
+  # available via <leader>am toggle.
+  if [[ "$_copilot" == true && "$_ollama" == false ]]; then
+    _nvim_ai_default_set "copilot"
+    ok "Startup default: Copilot  (toggle to Ollama later with <leader>am)"
+  elif [[ "$_ollama" == true ]]; then
+    _nvim_ai_default_set "remove"
+    ok "Startup default: Ollama/local  (toggle to Copilot with <leader>am)"
+  else
+    _nvim_ai_default_set "remove"
+  fi
+
+  echo ""
+  ok "Neovim AI setup complete — open Neovim and run:  :Lazy sync"
 }
 
 # ── iTerm2 profile ────────────────────────────────────────────────────────────
@@ -226,7 +361,9 @@ case "$OS" in
 esac
 
 create_symlinks
+setup_asdf_tools
 setup_git_identity
+setup_nvim_ai
 install_terminfo
 set_default_shell
 if [[ "$OS" == "Darwin" ]]; then setup_iterm2_profile; fi

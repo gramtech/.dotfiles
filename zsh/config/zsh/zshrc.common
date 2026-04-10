@@ -140,3 +140,6 @@ bindkey -e
 autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^X^E' edit-command-line
+
+# Machine-local overrides — not tracked in repo (e.g. NVIM_PROFILE=work)
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
