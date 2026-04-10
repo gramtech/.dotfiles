@@ -324,8 +324,8 @@ install_gh_dnf() {
 # ── asdf version manager ───────────────────────────────────────────────────
 
 install_asdf() {
-  if command -v asdf >/dev/null 2>&1; then
-    ok "asdf already installed ($(asdf version))"
+  if [[ -x "$HOME/.local/bin/asdf" ]]; then
+    ok "asdf already installed ($("$HOME/.local/bin/asdf" version))"
     return
   fi
   info "Installing asdf (binary)"
