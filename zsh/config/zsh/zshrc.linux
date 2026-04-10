@@ -73,7 +73,9 @@ elif [[ -f "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; 
 fi
 
 # --- asdf version manager ---
-[[ -f "$HOME/.asdf/asdf.sh" ]] && source "$HOME/.asdf/asdf.sh"
+# v0.16+ is a binary — no shell script to source. ~/.local/bin is already on
+# PATH above. Data/plugins still live in ~/.asdf (ASDF_DATA_DIR default).
+[[ -f "$HOME/.asdf/asdf.sh" ]] && source "$HOME/.asdf/asdf.sh"  # legacy shell-script version
 
 # --- bat: Debian/Ubuntu installs it as 'batcat' ---
 if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then

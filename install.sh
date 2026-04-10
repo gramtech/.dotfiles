@@ -123,7 +123,12 @@ setup_asdf_tools() {
   while IFS=' ' read -r name version; do
     [[ -z "$name" || "$name" == \#* ]] && continue
     asdf install "$name" "$version" 2>/dev/null || true
-    asdf set -u "$name" "$version"
+    # asdf set -u is v0.16+; older versions use asdf global
+    if asdf set --help >/dev/null 2>&1; then
+      asdf set -u "$name" "$version"
+    else
+      asdf global "$name" "$version"
+    fi
     ok "$name $version set as global"
   done < "$DOTFILES/.tool-versions"
 }

@@ -324,19 +324,30 @@ install_gh_dnf() {
 # ── asdf version manager ───────────────────────────────────────────────────
 
 install_asdf() {
-  if [[ -d "$HOME/.asdf" ]]; then
-    ok "asdf already installed at ~/.asdf"
+  if command -v asdf >/dev/null 2>&1; then
+    ok "asdf already installed ($(asdf version))"
     return
   fi
-  info "Installing asdf"
-  local version
+  info "Installing asdf (binary)"
+  local version arch
   version=$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest \
-    | grep '"tag_name"' | cut -d '"' -f 4)
-  trap 'rm -rf "$HOME/.asdf"; echo "asdf clone failed, cleaned up partial directory"' ERR
-  git clone --depth=1 --branch "$version" \
-    https://github.com/asdf-vm/asdf.git "$HOME/.asdf"
-  trap - ERR
-  ok "asdf ${version} installed"
+    | grep -m1 '"tag_name"' | cut -d '"' -f 4)
+  case "$(uname -m)" in
+    x86_64)  arch="amd64" ;;
+    aarch64) arch="arm64" ;;
+    i686)    arch="386" ;;
+    *)       warn "Unsupported architecture: $(uname -m)"; return 1 ;;
+  esac
+  local tmp dest="$HOME/.local/bin"
+  tmp="$(mktemp -d)"
+  curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/${version}/asdf-${version}-linux-${arch}.tar.gz" \
+    -o "$tmp/asdf.tar.gz"
+  tar -xzf "$tmp/asdf.tar.gz" -C "$tmp"
+  mkdir -p "$dest"
+  mv "$tmp/asdf" "$dest/asdf"
+  chmod +x "$dest/asdf"
+  rm -rf "$tmp"
+  ok "asdf ${version} installed to $dest/asdf"
   warn "Run 'source ~/.zshrc' to activate asdf, then add plugins with: asdf plugin add <name>"
 }
 
