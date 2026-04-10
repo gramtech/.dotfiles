@@ -86,21 +86,31 @@ install_core_dnf() {
 # System packages are often outdated — install from official source instead
 
 install_neovim_apt() {
-  info "Installing Neovim (latest stable AppImage)"
-  local dest="$HOME/.local/bin"
-  mkdir -p "$dest"
+  if command -v nvim >/dev/null 2>&1; then
+    ok "Neovim already installed ($(nvim --version | head -1))"
+    return
+  fi
+  # Use tarball rather than AppImage — AppImages require FUSE which WSL lacks.
+  # grep -m1 stops after the first match so curl doesn't get a broken pipe
+  # (set -o pipefail would otherwise treat the closed pipe as a fatal error).
+  info "Installing Neovim (latest stable tarball)"
+  local dest="$HOME/.local"
+  mkdir -p "$dest/bin"
   local url
   url=$(curl -fsSL https://api.github.com/repos/neovim/neovim/releases/latest \
     | grep '"browser_download_url"' \
-    | grep 'nvim-linux-x86_64\.appimage"' \
+    | grep -m1 'nvim-linux-x86_64\.tar\.gz"' \
     | cut -d '"' -f 4)
   if [[ -z "$url" ]]; then
-    warn "Could not determine latest Neovim AppImage URL; skipping"
+    warn "Could not determine latest Neovim tarball URL; skipping"
     return 1
   fi
-  curl -fsSL "$url" -o "$dest/nvim"
-  chmod +x "$dest/nvim"
-  ok "Neovim $("$dest/nvim" --version | head -1) installed to $dest/nvim"
+  local tmp
+  tmp="$(mktemp -d)"
+  curl -fsSL "$url" -o "$tmp/nvim.tar.gz"
+  tar -xzf "$tmp/nvim.tar.gz" -C "$dest" --strip-components=1
+  rm -rf "$tmp"
+  ok "Neovim $("$dest/bin/nvim" --version | head -1) installed to $dest/bin/nvim"
 }
 
 install_neovim_dnf() {
@@ -121,7 +131,7 @@ install_fonts() {
   local url
   url=$(curl -fsSL https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest \
     | grep '"browser_download_url"' \
-    | grep 'JetBrainsMono\.tar\.xz"' \
+    | grep -m1 'JetBrainsMono\.tar\.xz"' \
     | cut -d '"' -f 4)
   if [[ -z "$url" ]]; then
     warn "Could not determine JetBrains Mono Nerd Font download URL; skipping"
