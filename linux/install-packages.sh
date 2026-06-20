@@ -98,9 +98,7 @@ install_neovim_apt() {
   mkdir -p "$dest/bin"
   local url
   url=$(curl -fsSL https://api.github.com/repos/neovim/neovim/releases/latest \
-    | grep '"browser_download_url"' \
-    | grep -m1 'nvim-linux-x86_64\.tar\.gz"' \
-    | cut -d '"' -f 4)
+    | awk -F '"' '/"browser_download_url"/ && /nvim-linux-x86_64\.tar\.gz"/ && url == "" { url = $4 } END { print url }')
   if [[ -z "$url" ]]; then
     warn "Could not determine latest Neovim tarball URL; skipping"
     return 1
@@ -130,9 +128,7 @@ install_fonts() {
   info "Installing JetBrains Mono Nerd Font"
   local url
   url=$(curl -fsSL https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest \
-    | grep '"browser_download_url"' \
-    | grep -m1 'JetBrainsMono\.tar\.xz"' \
-    | cut -d '"' -f 4)
+    | awk -F '"' '/"browser_download_url"/ && /JetBrainsMono\.tar\.xz"/ && url == "" { url = $4 } END { print url }')
   if [[ -z "$url" ]]; then
     warn "Could not determine JetBrains Mono Nerd Font download URL; skipping"
     return 1
