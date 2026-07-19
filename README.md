@@ -24,7 +24,6 @@ A portable, modular development environment for macOS and Linux. One install scr
 | Infrastructure | Helm, Terraform |
 | GitHub CLI | gh |
 | Fuzzy finder | fzf + ripgrep |
-| AI shell helpers | Claude (`ccmd`, `ccmd_in`) |
 
 ---
 
@@ -44,7 +43,7 @@ A portable, modular development environment for macOS and Linux. One install scr
     ├── .zprofile
     ├── .zshrc
     └── config/zsh/
-        ├── zshrc.common    # Shared config (history, fzf, aliases, Claude helpers)
+        ├── zshrc.common    # Shared config (history, fzf, aliases)
         ├── zshrc.darwin    # macOS: Homebrew, iTerm2, 1Password SSH, asdf, zsh plugins
         ├── zshrc.linux     # Linux: PATH, fzf, asdf, zsh plugins, bat alias
         └── aliases.zsh
@@ -122,8 +121,6 @@ Optional components
 - fzf preview: history (`Ctrl+R`) with bat syntax highlighting, directory jump (`Alt+C`) with eza
 - zsh-autosuggestions, zsh-history-substring-search, zsh-syntax-highlighting
 - grc (Generic Colouriser) — colourizes output of `ip`, `ping`, `df`, `netstat`, `ps`, and more
-- `ccmd` — ask Claude for next-command suggestions from the shell
-- `ccmd_in` — pipe command output into Claude for diagnosis
 - iTerm2 shell integration (macOS)
 
 ### Tmux
